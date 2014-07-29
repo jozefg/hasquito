@@ -8,6 +8,7 @@ import           Control.Monad.Writer
 import qualified Data.Map as M
 import qualified Data.Text as T
 import           Language.Hasquito.Syntax
+import           Language.Hasquito.Util
 
 -- | The type of type constraints
 data Constr = Ty :~: Ty
@@ -37,14 +38,14 @@ unify ((TArr l r :~: TArr l' r') : rest) = unify (l :~: l' : r :~: r' : rest)
 unify ((TVar n :~: e) : rest) = M.insert n e <$> unify (subst n e rest)
 unify ((e :~: TVar n) : rest) = M.insert n e <$> unify (subst n e rest)
 unify ((l :~: r) : _) = throwError . TCError $
-                        "Couldn't unify " <> T.pack (show l) <> " with " <> T.pack (show r)
+                        "Couldn't unify " <> pretty l <> " with " <> pretty r
 
 useSubst :: Ty -> Subst -> Ty
 useSubst ty = M.foldWithKey substTy ty
 
 lookupVar :: (MonadReader (M.Map Name Ty) m, MonadError Error m) => Name -> m Ty
 lookupVar v = asks (M.lookup v) >>= \case
-  Nothing -> throwError . TCError $ "No such variable " <> T.pack (show v)
+  Nothing -> throwError . TCError $ "No such variable " <> pretty v
   Just ty -> return ty
 
 typeOf :: Exp -> WriterT [Constr] TCM Ty

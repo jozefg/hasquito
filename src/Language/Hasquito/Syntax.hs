@@ -10,15 +10,6 @@ instance Enum Name where
   fromEnum (Gen i) = i
   fromEnum Name{}  = error "Impossible! Attempted to fromEnum a Name"
 
--- | Errors from some part of the application
-data Error = TCError T.Text
-           deriving Show
-
-type CompilerM = ExceptT Error (Gen Name) 
-
-freshName :: CompilerM Name -- I really need to update monad-gen
-freshName = lift gen
-
 -- | Type of all Hasquito expression
 data Ty = TArr Ty Ty -- ^ Function type
         | TNum       -- ^ Numeric type
