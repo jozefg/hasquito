@@ -1,3 +1,4 @@
+{-# LANGUAGE FlexibleContexts #-}
 {-# LANGUAGE LambdaCase, RecordWildCards #-}
 module Language.Hasquito.TypeCheck where
 import           Control.Applicative
@@ -40,16 +41,18 @@ unify ((l :~: r) : _) = throwError . TCError $ "Couldn't unify " ++ show l ++ " 
 useSubst :: Ty -> Subst -> Ty
 useSubst ty = M.foldWithKey substTy ty
 
+lookupVar :: (MonadReader (M.Map Name Ty) m, MonadError Error m) => Name -> m Ty
+lookupVar v = asks (M.lookup v) >>= \case
+  Nothing -> throwError . TCError $ "No such variable " ++ show v
+  Just ty -> return ty
+
 typeOf :: Exp -> WriterT [Constr] TCM Ty
 typeOf Num {} = return TNum
 typeOf Prim{} = return $ TNum `TArr` TNum `TArr` TNum
-typeOf (Var v) = asks (M.lookup v) >>= \case
-    Just ty -> return ty
-    Nothing -> throwError . TCError $ "Unbound variable " ++ show v 
+typeOf (Var v) = lookupVar v
 typeOf (Lam vars body) = do
   resultTy <- local (M.union $ M.fromList vars) $ typeOf body
-  let argTys = map snd vars
-  return $ foldr TArr resultTy argTys
+  return . foldr TArr resultTy . map snd $ vars
 typeOf (App l r) = do
   funTy <- typeOf l
   argTy <- typeOf r
