@@ -60,17 +60,12 @@ typeOf (App l r) = do
   tell [TVar lvar `TArr` TVar rvar :~: funTy, TVar lvar :~: argTy]
   return (TVar rvar)
 
-typeCheck :: Def m -> CompilerM (Def m)
-typeCheck d@Def{..} = flip runReaderT M.empty $
-                      case defTy of
-                        Just ty -> do
-                          (ty', constr) <- runWriterT $ typeOf defBody
-                          _ <- unify $ ty :~: ty' : constr
-                          -- Should sanity check result...
-                          return d
-                        Nothing -> do
-                          (ty, constr) <- runWriterT $ typeOf defBody
-                          sub <- unify constr
-                          let ty' = useSubst ty sub
-                          return d{defTy = Just ty'}
+typeGlobal :: (M.Map Name Ty) -> Def m -> CompilerM (Def m)
+typeGlobal globals d@Def{..} = flip runReaderT globals $ do
+  (ty, constr) <- runWriterT $ typeOf defBody
+  _ <- unify $ ty :~: defTy : constr  -- Should sanity check result...
+  return d
 
+typeCheck :: [Def m] -> CompilerM [Def m]
+typeCheck defs = let globals = M.fromList $ zip (map defName defs) (map defTy defs)
+                 in mapM (typeGlobal globals) defs

@@ -34,7 +34,7 @@ data Exp = Prim Prim
          | Lam [(Name, Ty)] Exp
          deriving(Eq, Show)
 
-data Def meta = Def { defTy    :: Maybe Ty
+data Def meta = Def { defTy    :: Ty
                     , defName  :: Name
                     , defBody  :: Exp
                     , defMeta  :: meta }
