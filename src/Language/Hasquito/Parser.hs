@@ -41,7 +41,7 @@ app = do
   return (App l r)
 
 bindings :: Parser [(Name, Ty)]
-bindings = many1 binding
+bindings = many1 (skipSpace *> binding)
   where binding = do
           char '(' *> skipSpace 
           n <- name
