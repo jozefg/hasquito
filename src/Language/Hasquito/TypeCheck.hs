@@ -1,5 +1,4 @@
-{-# LANGUAGE FlexibleContexts #-}
-{-# LANGUAGE LambdaCase, RecordWildCards #-}
+{-# LANGUAGE LambdaCase, RecordWildCards, FlexibleContexts #-}
 module Language.Hasquito.TypeCheck where
 import           Control.Applicative
 import           Control.Monad.Except

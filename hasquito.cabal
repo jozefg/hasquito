@@ -10,7 +10,8 @@ category:            Language
 build-type:          Simple
 cabal-version:       >=1.10
 library
-  exposed-modules:     Language.Hasquito.Syntax
+  exposed-modules:     Language.Hasquito.Syntax,
+                       Language.Hasquito.TypeCheck
   build-depends:       containers >= 0.5,
                        base >=4 && <5,
                        mtl >= 2.2,
