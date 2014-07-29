@@ -29,11 +29,12 @@ data Prim = Plus | Minus | Mult | Div
 
 data Exp = Prim Prim
          | Num Int
-         | App Exp [Exp]
+         | Var Name
+         | App Exp Exp -- Curried application
          | Lam [(Name, Ty)] Exp
          deriving(Eq, Show)
 
-data Def meta = Def { defTy    :: Ty
+data Def meta = Def { defTy    :: Maybe Ty
                     , defName  :: Name
                     , defBody  :: Exp
                     , defMeta  :: meta }
