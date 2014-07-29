@@ -1,8 +1,9 @@
 module Language.Hasquito.Syntax where
-import Control.Monad.Except
-import Control.Monad.Gen
+import           Control.Monad.Except
+import           Control.Monad.Gen
+import qualified Data.Text as T
 
-data Name = Gen Int | Name String
+data Name = Gen Int | Name T.Text
           deriving(Eq, Show, Ord)
 instance Enum Name where
   toEnum           = Gen
@@ -10,7 +11,7 @@ instance Enum Name where
   fromEnum Name{}  = error "Impossible! Attempted to fromEnum a Name"
 
 -- | Errors from some part of the application
-data Error = TCError String
+data Error = TCError T.Text
            deriving Show
 
 type CompilerM = ExceptT Error (Gen Name) 

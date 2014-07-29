@@ -12,7 +12,8 @@ cabal-version:       >=1.10
 library
   exposed-modules:     Language.Hasquito.Syntax,
                        Language.Hasquito.TypeCheck
-  build-depends:       containers >= 0.5,
+  build-depends:       text >= 1.0,
+                       containers >= 0.5,
                        base >=4 && <5,
                        mtl >= 2.2,
                        monad-gen
