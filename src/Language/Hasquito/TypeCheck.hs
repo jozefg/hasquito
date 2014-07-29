@@ -1,10 +1,10 @@
-{-# LANGUAGE RecordWildCards #-}
+{-# LANGUAGE LambdaCase, RecordWildCards #-}
 module Language.Hasquito.TypeCheck where
 import           Control.Applicative
 import           Control.Monad.Except
 import           Control.Monad.Reader
+import           Control.Monad.Writer
 import qualified Data.Map as M
-import           Data.Maybe
 import           Language.Hasquito.Syntax
 
 
@@ -17,12 +17,14 @@ type Subst = M.Map Name Ty
 -- | The type checker monad
 type TCM = ReaderT (M.Map Name Ty) CompilerM
 
+substTy :: Name -> Ty -> Ty -> Ty
+substTy _ _ TNum = TNum
+substTy n e (TArr l r) = substTy n e l `TArr` substTy n e r
+substTy n e (TVar m) | n == m     = e
+                     | otherwise = TVar m
+
 subst :: Name -> Ty -> [Constr] -> [Constr]
-subst n ty = map $ \(a :~: b) -> change n ty a :~: change n ty b
-  where change _ _ TNum = TNum
-        change n e (TArr l r) = change n e l `TArr` change n e r
-        change n e (TVar m) | n == m     = e
-                            | otherwise = TVar m
+subst n ty = map $ \(a :~: b) -> substTy n ty a :~: substTy n ty b
 
 -- | Unify solves a list of constraints and produces
 -- the corresponding type substitution. It potentially
@@ -35,17 +37,15 @@ unify ((TVar n :~: e) : rest) = M.insert n e <$> unify (subst n e rest)
 unify ((e :~: TVar n) : rest) = M.insert n e <$> unify (subst n e rest)
 unify ((l :~: r) : _) = throwError . TCError $ "Couldn't unify " ++ show l ++ " with " ++ show r
 
-useSubst :: Name -> Subst -> Ty
-useSubst n = fromMaybe (TVar n) . M.lookup n
+useSubst :: Ty -> Subst -> Ty
+useSubst ty = M.foldWithKey substTy ty
 
-typeOf :: Exp -> TCM Ty
+typeOf :: Exp -> WriterT [Constr] TCM Ty
 typeOf Num {} = return TNum
 typeOf Prim{} = return $ TNum `TArr` TNum `TArr` TNum
-typeOf (Var v) = do
-  tyinfo <- asks (M.lookup v)
-  case tyinfo of
+typeOf (Var v) = asks (M.lookup v) >>= \case
     Just ty -> return ty
-    Nothing -> throwError . TCError $ "Unbound variable " ++ show v
+    Nothing -> throwError . TCError $ "Unbound variable " ++ show v 
 typeOf (Lam vars body) = do
   resultTy <- local (M.union $ M.fromList vars) $ typeOf body
   let argTys = map snd vars
@@ -53,17 +53,21 @@ typeOf (Lam vars body) = do
 typeOf (App l r) = do
   funTy <- typeOf l
   argTy <- typeOf r
-  [lvar, rvar] <- mapM lift [freshName, freshName]
-  sub <- unify [TVar lvar `TArr` TVar rvar :~: funTy, TVar lvar :~: argTy]
-  return $ useSubst rvar sub
+  [lvar, rvar] <- mapM (lift . lift) [freshName, freshName]
+  tell [TVar lvar `TArr` TVar rvar :~: funTy, TVar lvar :~: argTy]
+  return (TVar rvar)
 
 typeCheck :: Def m -> CompilerM (Def m)
 typeCheck d@Def{..} = flip runReaderT M.empty $
                       case defTy of
                         Just ty -> do
-                          ty' <- typeOf defBody
-                          unify [ty :~: ty']
+                          (ty', constr) <- runWriterT $ typeOf defBody
+                          _ <- unify $ ty :~: ty' : constr
+                          -- Should sanity check result...
                           return d
                         Nothing -> do
-                          ty <- typeOf defBody
-                          return d{defTy = Just ty}
+                          (ty, constr) <- runWriterT $ typeOf defBody
+                          sub <- unify constr
+                          let ty' = useSubst ty sub
+                          return d{defTy = Just ty'}
+
