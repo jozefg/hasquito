@@ -6,7 +6,6 @@ import           Control.Monad.Except
 import           Control.Monad.Reader
 import           Control.Monad.Writer
 import qualified Data.Map as M
-import qualified Data.Text as T
 import           Language.Hasquito.Syntax
 import           Language.Hasquito.Util
 
