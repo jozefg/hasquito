@@ -60,7 +60,7 @@ typeLam vars body = do
   bindings <- sequence $ zipWith (\v t -> (,) v <$> t) vars fresh
   resultTy <- local (M.union $ M.fromList bindings) $ typeOf body
   return . foldr TArr resultTy . map snd $ bindings
-  where fresh = map (fmap $ TVar Nothing Flexible) $ repeat (lift . lift $ freshName)
+  where fresh = map (fmap $ TVar Nothing Flexible) $ repeat freshName
 
 typeOf :: Exp -> WriterT [Constr] TCM Ty
 typeOf Num {} = return TNum

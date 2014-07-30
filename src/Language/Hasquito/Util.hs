@@ -1,3 +1,4 @@
+{-# LANGUAGE FlexibleContexts #-}
 {-# LANGUAGE OverloadedStrings #-}
 module Language.Hasquito.Util where
 import           Control.Monad.Except
@@ -16,10 +17,10 @@ data Error = TCError T.Text
 type CompilerM = ExceptT Error (Gen Name) 
 
 runCompilerM :: CompilerM a -> Either Error a
-runCompilerM = runGen (toEnum 0) . runExceptT
+runCompilerM = runGen . runExceptT
 
-freshName :: CompilerM Name -- I really need to update monad-gen
-freshName = lift gen
+freshName :: MonadGen Name m => m Name
+freshName = gen
 
 class Build a where
   build :: a -> B.Builder

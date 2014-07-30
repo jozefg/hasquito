@@ -26,9 +26,9 @@ library
                        
   build-depends:       text >= 1.0,
                        containers >= 0.5,
-                       mtl >= 2.2,
+                       mtl >= 2.2.1,
                        attoparsec,
-                       monad-gen,
+                       monad-gen >= 0.2.0.3,
                        base >=4 && <5
   
   hs-source-dirs:      src
