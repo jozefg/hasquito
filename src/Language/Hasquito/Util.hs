@@ -28,7 +28,7 @@ instance Build Name where
 instance Build Ty where
   build TNum       = B.fromString "Num"
   build (TArr l r) = "(" <> build l <> ") -> (" <> build r <> ")"
-  build (TVar v)   = build v
+  build (TVar _ _ v) = build v
 
 instance Build Prim where
   build Plus  = B.singleton '+'

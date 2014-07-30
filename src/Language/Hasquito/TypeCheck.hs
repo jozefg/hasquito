@@ -22,8 +22,9 @@ type TCM = ReaderT (M.Map Name Ty) CompilerM
 substTy :: Name -> Ty -> Ty -> Ty
 substTy _ _ TNum = TNum
 substTy n e (TArr l r) = substTy n e l `TArr` substTy n e r
-substTy n e (TVar m) | n == m     = e
-                     | otherwise = TVar m
+substTy n e (TVar Nothing Flexible m) | n == m     = e
+                                      | otherwise = TVar Nothing Flexible m
+substTy _ _ t = t
 
 subst :: Name -> Ty -> [Constr] -> [Constr]
 subst n ty = map $ \(a :~: b) -> substTy n ty a :~: substTy n ty b
@@ -35,8 +36,9 @@ unify :: [Constr] -> TCM Subst
 unify [] = return $ M.empty
 unify ((TNum :~: TNum) : rest) = unify rest
 unify ((TArr l r :~: TArr l' r') : rest) = unify (l :~: l' : r :~: r' : rest)
-unify ((TVar n :~: e) : rest) = M.insert n e <$> unify (subst n e rest)
-unify ((e :~: TVar n) : rest) = M.insert n e <$> unify (subst n e rest)
+unify ((TVar _ Flexible n :~: e) : rest) = M.insert n e <$> unify (subst n e rest)
+unify ((e :~: TVar _ Flexible n) : rest) = M.insert n e <$> unify (subst n e rest)
+unify ((l@(TVar _ Rigid _) :~: r@(TVar _ Rigid _)):rest) | l == r = unify rest
 unify ((l :~: r) : _) = throwError . TCError $
                         "Couldn't unify " <> pretty l <> " with " <> pretty r
 
@@ -53,7 +55,7 @@ typeLam vars body = do
   bindings <- sequence $ zipWith (\v t -> (,) v <$> t) vars fresh
   resultTy <- local (M.union $ M.fromList bindings) $ typeOf body
   return . foldr TArr resultTy . map snd $ bindings
-  where fresh = map (fmap TVar) $ repeat (lift . lift $ freshName)
+  where fresh = map (fmap $ TVar Nothing Flexible) $ repeat (lift . lift $ freshName)
 
 typeOf :: Exp -> WriterT [Constr] TCM Ty
 typeOf Num {} = return TNum
@@ -63,9 +65,10 @@ typeOf (Lam vars body) = typeLam vars body
 typeOf (App l r) = do
   funTy <- typeOf l
   argTy <- typeOf r
-  [lvar, rvar] <- mapM (lift . lift) [freshName, freshName]
-  tell [TVar lvar `TArr` TVar rvar :~: funTy, TVar lvar :~: argTy]
-  return (TVar rvar)
+  let tvar = TVar Nothing Flexible -- A new tvar
+  [lvar, rvar] <- fmap (map tvar) $ mapM (lift . lift) [freshName, freshName]
+  tell [lvar `TArr` rvar :~: funTy, lvar :~: argTy]
+  return rvar
 
 typeGlobal :: (M.Map Name Ty) -> Def m -> CompilerM (Def m)
 typeGlobal globals d@Def{..} = flip runReaderT globals $ do

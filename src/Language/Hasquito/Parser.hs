@@ -18,7 +18,7 @@ tnum :: Parser Ty
 tnum = string "Num" *> return TNum
 
 tvar :: Parser Ty
-tvar = TVar <$> name
+tvar = TVar Nothing Rigid <$> name
 
 ty :: Parser Ty
 ty = do

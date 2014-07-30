@@ -10,10 +10,13 @@ instance Enum Name where
   fromEnum (Gen i) = i
   fromEnum Name{}  = error "Impossible! Attempted to fromEnum a Name"
 
+data Flex = Flexible | Rigid
+          deriving (Eq, Show)
+
 -- | Type of all Hasquito expression
-data Ty = TArr Ty Ty -- ^ Function type
-        | TNum       -- ^ Numeric type
-        | TVar Name  -- ^ Implicitly universally quantified type var
+data Ty = TArr Ty Ty         -- ^ Function type
+        | TNum               -- ^ Numeric type
+        | TVar (Maybe Name) Flex Name -- ^ type var, annotated with it's flexibility and maybe it's scope
         deriving (Eq, Show)
 
 data Prim = Plus | Minus | Mult | Div
