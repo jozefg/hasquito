@@ -6,6 +6,7 @@ import qualified Data.Text as T
 import qualified Data.Text.IO as TIO
 import           Language.Hasquito.Syntax
 import           Language.Hasquito.Util
+import           Data.List (foldl1')
 
 name :: Parser Name
 name = Name . T.pack <$> many1 letter
@@ -31,13 +32,6 @@ num = Num <$> signed decimal
 var :: Parser Exp
 var = Var <$> name
 
-app :: Parser Exp
-app = do
-  l <- expr
-  char ' ' *> skipSpace
-  r <- expr
-  return (App l r)
-
 bindings :: Parser [(Name, Ty)]
 bindings = many1 (skipSpace *> binding)
   where binding = do
@@ -45,22 +39,23 @@ bindings = many1 (skipSpace *> binding)
           n <- name
           skipSpace *> char ':'
           t <- ty
+          skipSpace <* char ')'
           return (n, t)
 
 lam :: Parser Exp
 lam = do
-  char '('
+  string "fun "
   vars <- bindings
-  skipSpace *> string " -> " *> skipSpace
+  skipSpace *> string "->"
   body <- expr
-  char ')'
   return (Lam vars body)
 
 eparen :: Parser Exp
 eparen = char '(' *> expr <* skipSpace <* char ')'
 
 expr :: Parser Exp
-expr = skipSpace *> (eparen <|> try app <|> try lam <|> var <|> num)
+expr = foldl1' App <$> many1 nonrec
+  where nonrec = skipSpace *> (try lam <|> eparen <|> var <|> num)
 
 def :: Parser (Def ())
 def = do
