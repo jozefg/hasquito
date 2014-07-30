@@ -13,13 +13,6 @@ name = Name . T.pack <$> many1 letter
 tparen :: Parser Ty
 tparen = char '(' *> ty <* char ')'
 
-tarr :: Parser Ty
-tarr = do
-  l <- ty
-  _ <- string "->"
-  r <- ty
-  return (TArr l r)
-
 tnum :: Parser Ty
 tnum = string "Num" *> return TNum
 
@@ -27,7 +20,10 @@ tvar :: Parser Ty
 tvar = TVar <$> name
 
 ty :: Parser Ty
-ty = skipSpace *> (try tarr <|> tparen <|> tnum <|> tvar) <* skipSpace
+ty = do
+  t <- nonrec
+  try (TArr t <$> (string "->" *> ty)) <|> return t
+  where nonrec = skipSpace *> (tparen <|> tnum <|> tvar) <* skipSpace
 
 num :: Parser Exp
 num = Num <$> signed decimal
@@ -77,10 +73,10 @@ def = do
   skipSpace <* char ';'
   return (Def t nm ex ())
 
-file :: Parser [Def ()]
-file = many def <* skipSpace
+file :: T.Text -> Either String [Def ()]
+file = parseOnly (many def <* skipSpace)
 
 parseFile :: FilePath -> IO (Either Error [Def ()])
-parseFile path = mapL (ParseError . T.pack)  . parseOnly file <$> (TIO.readFile path)
+parseFile path = mapL (ParseError . T.pack)  . file <$> (TIO.readFile path)
   where mapL f (Left a)  = Left (f a)
         mapL _ (Right b) = Right b
