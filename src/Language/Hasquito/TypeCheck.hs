@@ -19,6 +19,12 @@ type Subst = M.Map Name Ty
 -- | The type checker monad
 type TCM = ReaderT (M.Map Name Ty) CompilerM
 
+-- Annotate all rigid tvars with a name
+annot :: Name -> Ty -> Ty
+annot n (TArr l r) = annot n l `TArr` annot n r
+annot n (TVar Nothing Rigid m) = TVar (Just n) Rigid m
+annot _ t = t
+
 substTy :: Name -> Ty -> Ty -> Ty
 substTy _ _ TNum = TNum
 substTy n e (TArr l r) = substTy n e l `TArr` substTy n e r
@@ -38,7 +44,7 @@ unify ((TNum :~: TNum) : rest) = unify rest
 unify ((TArr l r :~: TArr l' r') : rest) = unify (l :~: l' : r :~: r' : rest)
 unify ((TVar _ Flexible n :~: e) : rest) = M.insert n e <$> unify (subst n e rest)
 unify ((e :~: TVar _ Flexible n) : rest) = M.insert n e <$> unify (subst n e rest)
-unify ((l@(TVar _ Rigid _) :~: r@(TVar _ Rigid _)):rest) | l == r = unify rest
+unify ((l@(TVar _ Rigid _) :~: r@(TVar _ Rigid _)):rest) | l == r = unify rest -- Only unify identical rigid vars
 unify ((l :~: r) : _) = throwError . TCError $
                         "Couldn't unify " <> pretty l <> " with " <> pretty r
 
@@ -77,5 +83,6 @@ typeGlobal globals d@Def{..} = flip runReaderT globals $ do
   return d
 
 typeCheck :: [Def m] -> CompilerM [Def m]
-typeCheck defs = let globals = M.fromList $ zip (map defName defs) (map defTy defs)
+typeCheck defs = let globals = M.fromList $ zipWith annotPair (map defName defs) (map defTy defs)
                  in mapM (typeGlobal globals) defs
+  where annotPair n t = (n, annot n t)
