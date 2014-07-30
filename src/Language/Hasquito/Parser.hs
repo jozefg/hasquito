@@ -1,5 +1,5 @@
 {-# LANGUAGE OverloadedStrings #-}
-module Parser where
+module Language.Hasquito.Parser where
 import Control.Applicative
 import Data.Attoparsec.Text
 import qualified Data.Text as T
