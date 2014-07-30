@@ -10,6 +10,7 @@ languages, particularly lazy ones.
  - ✓ Lambda Lifting
  - Conversion to STG
  - Compilation of STG
+ - Expand primitives with booleans
 
 Hasquito doesn't have a RTS yet but will Real Soon Now.
 
