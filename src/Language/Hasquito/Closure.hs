@@ -31,3 +31,8 @@ liftLam l@(Lam vars body) = do
   tell [Def TNum name l ()]
   return (Var name)
 
+removeClos :: [Def ()] -> CompilerM [Def ()]
+removeClos = fmap concat . mapM scify
+  where scify d@Def{defBody = b} = do
+          (b', lifts) <- runWriterT $ liftLam (closConv b)
+          return $ d{defBody = b'} : lifts
