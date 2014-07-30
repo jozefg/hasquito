@@ -1,9 +1,9 @@
 {-# LANGUAGE OverloadedStrings #-}
 module Language.Hasquito.Parser where
-import Control.Applicative
-import Data.Attoparsec.Text
+import           Control.Applicative
+import           Data.Attoparsec.Text
 import qualified Data.Text as T
-import Language.Hasquito.Syntax
+import           Language.Hasquito.Syntax
 
 name :: Parser Name
 name = Name . T.pack <$> many1 letter
