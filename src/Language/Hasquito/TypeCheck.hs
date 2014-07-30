@@ -79,7 +79,8 @@ typeOf (App l r) = do
 typeGlobal :: (M.Map Name Ty) -> Def m -> CompilerM (Def m)
 typeGlobal globals d@Def{..} = flip runReaderT globals $ do
   (ty, constr) <- runWriterT $ typeOf defBody
-  _ <- unify $ ty :~: defTy : constr  -- Should sanity check result...
+  sub <- unify constr
+  _ <- unify [useSubst ty sub :~: defTy] -- If this succeeds then we're OK
   return d
 
 typeCheck :: [Def m] -> CompilerM [Def m]
