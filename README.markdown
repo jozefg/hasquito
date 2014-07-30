@@ -6,8 +6,8 @@ languages, particularly lazy ones.
 
  - ✓ Parsing
  - ✓ Type Checking
- - Closure Conversion
- - Lambda Lifting
+ - ✓ Closure Conversion
+ - ✓ Lambda Lifting
  - Conversion to STG
  - Compilation of STG
 
@@ -32,4 +32,3 @@ parsing greatly. Lambdas are implicitly curried though.
 Interested in contributing? Awesome! Let me know what you're
 interested in implementing and I'll guide you further. Please email me
 at jozefg AT cmu DOT edu.
- 
