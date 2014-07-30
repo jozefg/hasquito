@@ -23,7 +23,7 @@ data Exp = Prim Prim
          | Num Int
          | Var Name
          | App Exp Exp -- Curried application
-         | Lam [(Name, Ty)] Exp
+         | Lam [Name] Exp
          deriving(Eq, Show)
 
 data Def meta = Def { defTy    :: Ty

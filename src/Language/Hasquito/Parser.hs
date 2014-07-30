@@ -32,20 +32,10 @@ num = Num <$> signed decimal
 var :: Parser Exp
 var = Var <$> name
 
-bindings :: Parser [(Name, Ty)]
-bindings = many1 (skipSpace *> binding)
-  where binding = do
-          char '(' *> skipSpace 
-          n <- name
-          skipSpace *> char ':'
-          t <- ty
-          skipSpace <* char ')'
-          return (n, t)
-
 lam :: Parser Exp
 lam = do
   string "fun "
-  vars <- bindings
+  vars <- many1 (skipSpace *> name)
   skipSpace *> string "->"
   body <- expr
   return (Lam vars body)

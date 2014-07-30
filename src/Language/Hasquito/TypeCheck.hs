@@ -48,13 +48,18 @@ lookupVar v = asks (M.lookup v) >>= \case
   Nothing -> throwError . TCError $ "No such variable " <> pretty v
   Just ty -> return ty
 
+typeLam :: [Name] -> Exp -> WriterT [Constr] TCM Ty
+typeLam vars body = do
+  bindings <- sequence $ zipWith (\v t -> (,) v <$> t) vars fresh
+  resultTy <- local (M.union $ M.fromList bindings) $ typeOf body
+  return . foldr TArr resultTy . map snd $ bindings
+  where fresh = map (fmap TVar) $ repeat (lift . lift $ freshName)
+
 typeOf :: Exp -> WriterT [Constr] TCM Ty
 typeOf Num {} = return TNum
 typeOf Prim{} = return $ TNum `TArr` TNum `TArr` TNum
 typeOf (Var v) = lookupVar v
-typeOf (Lam vars body) = do
-  resultTy <- local (M.union $ M.fromList vars) $ typeOf body
-  return . foldr TArr resultTy . map snd $ vars
+typeOf (Lam vars body) = typeLam vars body
 typeOf (App l r) = do
   funTy <- typeOf l
   argTy <- typeOf r

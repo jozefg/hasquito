@@ -36,17 +36,14 @@ instance Build Prim where
   build Minus = B.singleton '-'
   build Div   = B.singleton '/'
 
-buildBinding :: (Name, Ty) -> B.Builder
-buildBinding (v, ty) = "(" <> build v <> " : " <> build ty <> ")"
-
 instance Build Exp where
   build (Num i)   = B.fromString (show i)
   build (App l r) = "(" <> build l <> ") (" <> build r <> ")"
   build (Prim p)  = build p
   build (Var v)   = build v
   build (Lam vars body) =
-    let bindings = foldr (<>) mempty . map buildBinding $ vars
-    in "(\\" <> bindings <> " -> " <> build body <> ")"
+    let bindings = mconcat . map build $ vars
+    in "(fun " <> bindings <> " -> " <> build body <> ")"
 
 instance Build (Def m) where
   build (Def ty nm body _) = build nm <> " : " <> build ty <> " = " <> build body
