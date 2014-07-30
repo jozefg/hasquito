@@ -15,6 +15,9 @@ data Error = TCError T.Text
 
 type CompilerM = ExceptT Error (Gen Name) 
 
+runCompilerM :: CompilerM a -> Either Error a
+runCompilerM = runGen (toEnum 0) . runExceptT
+
 freshName :: CompilerM Name -- I really need to update monad-gen
 freshName = lift gen
 
