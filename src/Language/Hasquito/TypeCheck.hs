@@ -64,7 +64,7 @@ typeLam vars body = do
 
 typeOf :: Exp -> WriterT [Constr] TCM Ty
 typeOf Num {} = return TNum
-typeOf Prim{} = return $ TNum `TArr` TNum `TArr` TNum
+typeOf Op{} = return $ TNum `TArr` TNum `TArr` TNum
 typeOf (Var v) = lookupVar v
 typeOf (Lam vars body) = typeLam vars body
 typeOf (App l r) = do

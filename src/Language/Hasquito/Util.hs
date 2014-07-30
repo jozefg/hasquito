@@ -34,7 +34,7 @@ instance Build Ty where
   build (TArr l r) = "(" <> build l <> ") -> (" <> build r <> ")"
   build (TVar _ _ v) = build v
 
-instance Build Prim where
+instance Build Op where
   build Plus  = B.singleton '+'
   build Mult  = B.singleton '*'
   build Minus = B.singleton '-'
@@ -43,7 +43,7 @@ instance Build Prim where
 instance Build Exp where
   build (Num i)   = B.fromString (show i)
   build (App l r) = "(" <> build l <> ") (" <> build r <> ")"
-  build (Prim p)  = build p
+  build (Op p)  = build p
   build (Var v)   = build v
   build (Lam vars body) =
     let bindings = mconcat . map build $ vars

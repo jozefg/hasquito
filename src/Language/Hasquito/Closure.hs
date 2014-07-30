@@ -7,14 +7,14 @@ import Language.Hasquito.Util
 
 freeVars :: Exp -> [Name]
 freeVars Num{}           = []
-freeVars Prim{}          = []
+freeVars Op{}            = []
 freeVars (Var n)         = [n]
 freeVars (App l r)       = freeVars l ++ freeVars r
 freeVars (Lam vars body) = freeVars body \\ vars
 
 closConv :: Exp -> Exp
 closConv (Num i) = Num i
-closConv (Prim p) = Prim p
+closConv (Op p) = Op p
 closConv (Var n) = Var n
 closConv (App l r) = closConv l `App` closConv r
 closConv (Lam vars body) =
@@ -23,7 +23,7 @@ closConv (Lam vars body) =
 
 liftLam :: Exp -> WriterT [Def ()] CompilerM Exp
 liftLam (Num i) = return $ Num i
-liftLam (Prim p) = return $ Prim p
+liftLam (Op p) = return $ Op p
 liftLam (Var n) = return $ Var n
 liftLam (App l r) = App <$> liftLam l <*> liftLam r
 liftLam l@(Lam vars body) = do

@@ -19,10 +19,10 @@ data Ty = TArr Ty Ty         -- ^ Function type
         | TVar (Maybe Name) Flex Name -- ^ type var, annotated with it's flexibility and maybe it's scope
         deriving (Eq, Show)
 
-data Prim = Plus | Minus | Mult | Div
+data Op = Plus | Minus | Mult | Div
           deriving(Eq, Show)
 
-data Exp = Prim Prim
+data Exp = Op Op
          | Num Int
          | Var Name
          | App Exp Exp -- Curried application
