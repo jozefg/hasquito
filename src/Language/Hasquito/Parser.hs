@@ -43,9 +43,15 @@ lam = do
 eparen :: Parser Exp
 eparen = char '(' *> expr <* skipSpace <* char ')'
 
+prim :: Parser Exp
+prim = Op <$> (    char '+' *> return Plus
+               <|> char '-' *> return Minus
+               <|> char '*' *> return Mult
+               <|> char '/' *> return Div)
+
 expr :: Parser Exp
 expr = foldl1' App <$> many1 nonrec
-  where nonrec = skipSpace *> (try lam <|> eparen <|> var <|> num)
+  where nonrec = skipSpace *> (try lam <|> eparen <|> prim <|> var <|> num)
 
 def :: Parser (Def ())
 def = do

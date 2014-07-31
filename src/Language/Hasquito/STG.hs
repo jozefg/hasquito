@@ -20,4 +20,3 @@ data InfoTable = InfoTable { arity   :: Int
 data Closure = Closure { freeVars :: [SExp]
                        , table    :: InfoTable }
 
-
