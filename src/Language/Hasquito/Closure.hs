@@ -12,6 +12,19 @@ freeVars (Var n)         = [n]
 freeVars (App l r)       = freeVars l ++ freeVars r
 freeVars (Lam closed vars body) = freeVars body \\ (vars ++ closed)
 
+saturate :: Exp -> CompilerM Exp
+saturate (App (App (Op p) l) r) = App <$> (App (Op p) <$> saturate l) <*> (saturate r)
+saturate (App (Op o) l) = do
+  r <- freshName
+  l' <- saturate l
+  return $ Lam [] [r] (App (App (Op o) l' ) $ Var r)
+saturate (Op o) = do
+  [l, r] <- sequence [freshName, freshName]
+  return $ Lam [] [l, r] (App (App (Op o) (Var l)) $ Var r)
+saturate (App l r) = App <$> saturate l <*> saturate r
+saturate (Lam cs vs body) = Lam cs vs <$> saturate body
+saturate e = return e
+
 closConv :: Exp -> Exp
 closConv (Num i) = Num i
 closConv (Op p) = Op p
@@ -33,6 +46,7 @@ liftLam l@(Lam{}) = do
 
 removeClos :: [Def ()] -> CompilerM [Def ()]
 removeClos = fmap concat . mapM scify
-  where scify d@Def{defBody = b} = do
+  where scify d = do
+          b <- saturate (defBody d)
           (b', lifts) <- runWriterT $ liftLam (closConv b)
           return $ d{defBody = b'} : lifts
