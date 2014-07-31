@@ -28,6 +28,9 @@ convert (Num i) = return $ SNum i
 convert (Var n) = return $ SVar n
 convert Lam{} = throwError . Impossible $ "Unlifted lambda in STG.convert!"
 
-toSTG :: Def m -> CompilerM TopLevel
-toSTG (Def _ nm (Lam closed vars body) _) = Fun nm closed vars <$> convert body
-toSTG (Def _ nm e _) = Thunk nm <$> convert e
+convertDec :: Def m -> CompilerM TopLevel
+convertDec (Def _ nm (Lam closed vars body) _) = Fun nm closed vars <$> convert body
+convertDec (Def _ nm e _) = Thunk nm <$> convert e
+
+toSTG :: [Def m] -> CompilerM [TopLevel]
+toSTG = mapM convertDec
