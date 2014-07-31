@@ -66,7 +66,8 @@ typeOf :: Exp -> WriterT [Constr] TCM Ty
 typeOf Num {} = return TNum
 typeOf Op{} = return $ TNum `TArr` TNum `TArr` TNum
 typeOf (Var v) = lookupVar v
-typeOf (Lam vars body) = typeLam vars body
+typeOf (Lam [] vars body) = typeLam vars body
+typeOf Lam{} = throwError . TCError $ "Nontrivial closure in typechecking!"
 typeOf (App l r) = do
   funTy <- typeOf l
   argTy <- typeOf r

@@ -38,7 +38,7 @@ lam = do
   vars <- many1 (skipSpace *> name)
   skipSpace *> string "->"
   body <- expr
-  return (Lam vars body)
+  return (Lam [] vars body)
 
 eparen :: Parser Exp
 eparen = char '(' *> expr <* skipSpace <* char ')'
