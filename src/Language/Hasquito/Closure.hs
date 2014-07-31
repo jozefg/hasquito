@@ -17,9 +17,9 @@ closConv (Num i) = Num i
 closConv (Op p) = Op p
 closConv (Var n) = Var n
 closConv (App l r) = closConv l `App` closConv r
-closConv (Lam [] vars body) =
-  let others = freeVars (Lam [] vars body)
-  in Lam others vars body
+closConv (Lam closed vars body) =
+  let others = freeVars (Lam closed vars body)
+  in Lam (closed ++ others) vars body
 
 liftLam :: Exp -> WriterT [Def ()] CompilerM Exp
 liftLam (Num i) = return $ Num i
