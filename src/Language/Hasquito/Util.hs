@@ -12,6 +12,7 @@ import           Language.Hasquito.Syntax
 -- | Errors from some part of the application
 data Error = TCError T.Text
            | ParseError T.Text
+           | Impossible T.Text
            deriving Show
 
 type CompilerM = ExceptT Error (Gen Name) 
