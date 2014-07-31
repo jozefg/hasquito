@@ -7,8 +7,8 @@ import Control.Monad.Except
 
 -- | The top level that all declarations will be
 -- compiled to.
-data TopLevel = Thunk SExp
-              | Fun [Name] [Name] SExp
+data TopLevel = Thunk Name SExp
+              | Fun Name [Name] [Name] SExp
 
 -- | The new expression language, includes
 -- primitive ints, variables, and full and partial
@@ -26,4 +26,8 @@ convert Op{} = throwError . Impossible $ "Unsatured operator in STG.convert"
 convert (App l r) = SApp <$> convert l <*> convert r
 convert (Num i) = return $ SNum i
 convert (Var n) = return $ SVar n
-convert Lam{} = throwError . Impossible $ "Unlifted lambda in STG.convert"
+convert Lam{} = throwError . Impossible $ "Unlifted lambda in STG.convert!"
+
+toSTG :: Def m -> CompilerM TopLevel
+toSTG (Def _ nm (Lam closed vars body) _) = Fun nm closed vars <$> convert body
+toSTG (Def _ nm e _) = Thunk nm <$> convert e
