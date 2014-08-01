@@ -44,8 +44,8 @@ liftLam l@(Lam{}) = do
   tell [Def TNum name l ()]
   return (Var name)
 
-removeClos :: [Def ()] -> CompilerM [Def ()]
-removeClos = fmap concat . mapM scify
+simplify :: [Def ()] -> CompilerM [Def ()]
+simplify = fmap concat . mapM scify
   where scify d = do
           b <- saturate (defBody d)
           (b', lifts) <- runWriterT $ liftLam (closConv b)

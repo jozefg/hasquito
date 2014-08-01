@@ -9,6 +9,7 @@ import Control.Monad.Except
 -- compiled to.
 data TopLevel = Thunk Name SExp
               | Fun Name [Name] [Name] SExp
+              deriving Show
 
 -- | The new expression language, includes
 -- primitive ints, variables, and full and partial
@@ -19,6 +20,7 @@ data SExp = SNum Int
           | SVar Name
           | SApp SExp SExp
           | FullApp Op SExp SExp
+          deriving Show
 
 convert :: Exp -> CompilerM SExp
 convert (App (App (Op p) l) r) = FullApp p <$> convert l <*> convert r
