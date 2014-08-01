@@ -22,6 +22,7 @@ library
                        Language.Hasquito.TypeCheck,
                        Language.Hasquito.Util,
                        Language.Hasquito.Parser,
+                       Language.Hasquito.Closure,
                        Language.Hasquito.STG,
                        Language.Hasquito
                        
