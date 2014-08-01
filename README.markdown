@@ -8,11 +8,18 @@ languages, particularly lazy ones.
  - ✓ Type Checking
  - ✓ Closure Conversion
  - ✓ Lambda Lifting
- - Conversion to STG
+ - ✓ Conversion to STG
  - Compilation of STG
  - Expand primitives with booleans
+ - Tests
 
-Hasquito doesn't have a RTS yet but will Real Soon Now.
+The current scheme for handling STG is to compile it to an internal C
+like language. From here hasquito could compile this to a pleasant
+language to work with or just interpret it directly.
+
+If we interpret it directly we get the nice perk of the entire
+compiler being in Haskell, which is pleasant for teaching and
+debugging purposes.
 
 ## Language
 
