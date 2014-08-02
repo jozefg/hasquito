@@ -13,7 +13,6 @@ data Stmt = WriteStack Reg Int Int -- ^ Push an prim/address onto a stack
 type Program = [Stmt]
 
 
-data InfoTable = Info { entryCode :: Program }
-data Closure = Closure { info   :: InfoTable
-                       , closed :: [Int] }
+data Closure = Closure { entry  :: Program
+                       , closed :: [Int]   }
 data Frame = Frame {closurePtr :: Int}
