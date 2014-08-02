@@ -1,6 +1,6 @@
 module Language.Hasquito.AbsMachine where
 import Language.Hasquito.Syntax
-
+import 
 data Reg = SpA -- ^ stack for ints
          | SpB -- ^ stack for closures addresses
          | SpC -- ^ stack for continuations
@@ -17,9 +17,9 @@ data Stmt = WriteStack Reg Int Int -- ^ Push an prim/address onto a stack
           | Enter Int              -- ^ Enter a closure at a particular addr
           | AllocC Name Closure    -- ^ Allocate a closure, store result
           | AllocF Name Frame      -- ^ Allocate a frame, store the result
+          | PrimOp Op Reg Reg Reg  -- ^ Do a primitive operation
 
 type Program = [Stmt]
-
 
 data Closure = Closure { entry  :: Program
                        , closed :: [Int]   }
