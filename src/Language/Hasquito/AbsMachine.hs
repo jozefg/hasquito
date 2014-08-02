@@ -1,7 +1,7 @@
 module Language.Hasquito.AbsMachine where
 import Language.Hasquito.Syntax
 
-data Reg = SpA | SpB | SpC | SpF | Node
+data Reg = SpA | SpB | SpC | SpF | Node | User Int
 
 data Stmt = WriteStack Reg Int Int -- ^ Push an prim/address onto a stack
           | ReadStack Name Reg Int -- ^ Assign the Int th argument to Name
