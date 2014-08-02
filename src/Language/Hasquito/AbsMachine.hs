@@ -1,6 +1,6 @@
 module Language.Hasquito.AbsMachine where
 import Language.Hasquito.Syntax
-import 
+
 data Reg = SpA -- ^ stack for ints
          | SpB -- ^ stack for closures addresses
          | SpC -- ^ stack for continuations
