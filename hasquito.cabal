@@ -24,6 +24,7 @@ library
                        Language.Hasquito.Parser,
                        Language.Hasquito.Closure,
                        Language.Hasquito.STG,
+                       Language.Hasquito.AbsMachine,
                        Language.Hasquito
                        
   build-depends:       text >= 1.0,
