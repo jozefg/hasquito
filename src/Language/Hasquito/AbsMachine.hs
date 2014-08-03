@@ -24,6 +24,8 @@ data Stmt = WriteStack Reg Int Reg -- ^ Push an prim/address onto a stack
           | ReadStack Name Reg Reg -- ^ Assign the Int th argument to Name
           | AdjustSP Reg Int       -- ^ Increment or decrement a SP
           | Enter Address          -- ^ Enter a closure at a particular addr
+          | Move Reg Reg           -- ^ Move a register to another
+          | Place Int Reg          -- ^ Put a number in a register
           | AllocC Reg  Closure    -- ^ Allocate a closure, store result
           | AllocF Reg  Frame      -- ^ Allocate a frame, store the result
           | Jump Address           -- ^ Jump straight to an address, no entry code
@@ -81,6 +83,7 @@ putName name address = modify $ \h -> h{entries = M.insert name address (entries
 
 compileSExp :: SExp -> Address -> HeapM Program
 compileSExp = undefined
+  
 
 compileSTG :: TopLevel -> HeapM ()
 compileSTG (Thunk name sexp) = do
