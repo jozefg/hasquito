@@ -1,5 +1,7 @@
+{-# LANGUAGE OverloadedStrings #-}
 module Language.Hasquito.AbsMachine where
 import           Control.Applicative
+import           Control.Monad.Except
 import           Control.Monad.State
 import qualified Data.Map as M
 import           Language.Hasquito.STG
@@ -29,18 +31,19 @@ data Stmt = WriteStack Reg Int Reg -- ^ Push an prim/address onto a stack
 type Program = [Stmt]
 
 data Closure = Closure { entry  :: Address -- ^ Address of entry code
-                       , closed :: [Int]   }
+                       , closed :: Int   }
 data Frame = Frame {closurePtr :: Int}
 
 data HeapEntry = HeapFrame Frame
                | HeapClosure Closure
                | HeapProgram Program
 
-type HeapEntries  = M.Map Name Int
+type HeapEntries  = M.Map Name Address
 type HeapContents = M.Map Int HeapEntry
-
+type StackEntries = M.Map Name Int
 data HeapState = HeapState { entries  :: HeapEntries
                            , contents :: HeapContents
+                           , stackEnt :: StackEntries
                            , currAddr :: Address}
 type HeapM = StateT HeapState CompilerM
 
@@ -55,8 +58,42 @@ place mayName entry address = do
     Just name -> modify $ \h -> h{entries = M.insert name address (entries h)}
     Nothing   -> return ()
 
-allocProg :: (Address -> Program) -> HeapM ()
-allocProg prog = do
+allocProg :: (Address -> HeapM Program) -> HeapM Address
+allocProg mkProg = do
+  heapState <- get -- Get the world before mkProg
+  size <- length <$> mkProg (error "Cannot depend on program address for size")
+  put heapState   -- No side effects from running mkProg
   address <- alloc size
-  place Nothing (HeapProgram $ prog address) address
-  where size = length . prog $ error "Program size can't depend on address"
+  program <- mkProg address
+  place Nothing (HeapProgram program) address
+  return address
+
+getName :: Name -> HeapM Address
+getName n = do
+  entry <- M.lookup n <$> gets entries
+  case entry of
+    Nothing -> lift . throwError . Impossible $ "Unbound name in STG compilation!"
+    Just a  -> return a
+
+putName :: Name -> Address -> HeapM ()
+putName name address = modify $ \h -> h{entries = M.insert name address (entries h)}
+
+compileSExp :: SExp -> Address -> HeapM Program
+compileSExp = undefined
+
+compileSTG :: TopLevel -> HeapM ()
+compileSTG (Thunk name sexp) = do
+  entryCode <- allocProg $ compileSExp sexp
+  address <- alloc 1
+  place (Just name) (HeapClosure $ Closure entryCode 0) address
+compileSTG (Fun name closed vars body) = do
+  address <- alloc (1 + length closed)
+  prevEntries <- mapM getName closed -- This shouldn't fail when clos name is unbound.. FIXME
+  prevStack <- gets stackEnt
+  forM_ (zip closed [1..]) $ \(name, offset) ->
+    putName name $ address + offset
+  modify $ \h -> h{stackEnt = M.fromList $ zip vars [0..]}
+  entryCode <- allocProg $ compileSExp body
+  place (Just name) (HeapClosure $ Closure entryCode (length closed)) address
+  modify $ \h -> h{stackEnt = prevStack}
+  forM_ (zip closed prevEntries) (uncurry putName)
