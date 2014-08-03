@@ -1,5 +1,9 @@
 module Language.Hasquito.AbsMachine where
-import Language.Hasquito.Syntax
+import           Control.Monad.State
+import qualified Data.Map as M
+import           Language.Hasquito.STG
+import           Language.Hasquito.Syntax
+import           Language.Hasquito.Util
 
 data Reg = SpA -- ^ stack for ints
          | SpB -- ^ stack for closures addresses
@@ -11,16 +15,20 @@ data Reg = SpA -- ^ stack for ints
          | Ret -- ^ Return register for integers
          | User Int -- ^ A user defined register
 
-data Stmt = WriteStack Reg Int Int -- ^ Push an prim/address onto a stack
-          | ReadStack Name Reg Int -- ^ Assign the Int th argument to Name
+data Stmt = WriteStack Reg Int Reg -- ^ Push an prim/address onto a stack
+          | ReadStack Name Reg Reg -- ^ Assign the Int th argument to Name
           | AdjustSP Reg Int       -- ^ Increment or decrement a SP
           | Enter Int              -- ^ Enter a closure at a particular addr
-          | AllocC Name Closure    -- ^ Allocate a closure, store result
-          | AllocF Name Frame      -- ^ Allocate a frame, store the result
+          | AllocC Reg  Closure    -- ^ Allocate a closure, store result
+          | AllocF Reg  Frame      -- ^ Allocate a frame, store the result
           | PrimOp Op Reg Reg Reg  -- ^ Do a primitive operation
+          | CurAddress Reg         -- ^ 
 
 type Program = [Stmt]
 
 data Closure = Closure { entry  :: Program
                        , closed :: [Int]   }
 data Frame = Frame {closurePtr :: Int}
+
+type Heap  = M.Map Name Int
+type HeapM = StateT Heap CompilerM
