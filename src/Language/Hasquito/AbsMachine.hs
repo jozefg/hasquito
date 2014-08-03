@@ -26,6 +26,7 @@ data Stmt = WriteStack Reg Int Reg -- ^ Push an prim/address onto a stack
           | Enter Address          -- ^ Enter a closure at a particular addr
           | AllocC Reg  Closure    -- ^ Allocate a closure, store result
           | AllocF Reg  Frame      -- ^ Allocate a frame, store the result
+          | Jump Address           -- ^ Jump straight to an address, no entry code
           | PrimOp Op Reg Reg Reg  -- ^ Do a primitive operation
 
 type Program = [Stmt]
