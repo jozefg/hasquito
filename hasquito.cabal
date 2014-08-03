@@ -24,7 +24,6 @@ library
                        Language.Hasquito.Parser,
                        Language.Hasquito.Closure,
                        Language.Hasquito.STG,
-                       Language.Hasquito.AbsMachine,
                        Language.Hasquito
                        
   build-depends:       text >= 1.0,
@@ -32,6 +31,7 @@ library
                        mtl >= 2.2.1,
                        attoparsec,
                        monad-gen >= 0.2.0.3,
+                       js-good-parts >= 0.0.7,
                        base >=4 && <5
   
   hs-source-dirs:      src
