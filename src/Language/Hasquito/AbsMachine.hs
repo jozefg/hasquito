@@ -88,12 +88,17 @@ compileSTG (Thunk name sexp) = do
   place (Just name) (HeapClosure $ Closure entryCode 0) address
 compileSTG (Fun name closed vars body) = do
   address <- alloc (1 + length closed)
-  prevEntries <- mapM getName closed -- This shouldn't fail when clos name is unbound.. FIXME
+  -- Save the stuff we're about to clobber
+  overwritten <- filterM (\n -> M.member n <$> gets entries) closed
+  prevEntries <- mapM getName overwritten
   prevStack <- gets stackEnt
+  -- Clobber
   forM_ (zip closed [1..]) $ \(name, offset) ->
     putName name $ address + offset
   modify $ \h -> h{stackEnt = M.fromList $ zip vars [0..]}
+  -- Actual code gen
   entryCode <- allocProg $ compileSExp body
   place (Just name) (HeapClosure $ Closure entryCode (length closed)) address
+  -- Restore previous state
   modify $ \h -> h{stackEnt = prevStack}
-  forM_ (zip closed prevEntries) (uncurry putName)
+  forM_ (zip overwritten prevEntries) (uncurry putName)
