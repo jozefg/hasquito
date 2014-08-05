@@ -72,7 +72,7 @@ typeOf (App l r) = do
   funTy <- typeOf l
   argTy <- typeOf r
   let tvar = TVar Nothing Flexible -- A new tvar
-  [lvar, rvar] <- fmap (map tvar) $ mapM (lift . lift) [freshName, freshName]
+  [lvar, rvar] <- fmap (map tvar) $ sequence [freshName, freshName]
   tell [lvar `TArr` rvar :~: funTy, lvar :~: argTy]
   return rvar
 
