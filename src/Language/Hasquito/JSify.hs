@@ -10,8 +10,8 @@ import           Language.Hasquito.Util
 import           Language.JavaScript.AST
 import           Language.JavaScript.NonEmptyList
 
-data Closure = Closure { topClos  :: M.Map Name [Name] -- ^ A map of names to closed variables
-                       , currClos :: M.Map Name Int -- ^ A map of closed over variables to their current position
+data Closure = Closure { topClos  :: M.Map S.Name [S.Name] -- ^ A map of names to closed variables
+                       , currClos :: M.Map S.Name Int -- ^ A map of closed over variables to their current position
                        }
 
 type CodeGenM = ReaderT Closure CompilerM
@@ -45,6 +45,30 @@ enter e = do
     singleton (LValue enterName []) `ESApply`
      (RVInvoke . singleton . Invocation) [e]
 
+index :: Int -> CodeGenM Expr
+index i = do
+  [node, closed] <- sequence [jname "NODE", jname "closed_vars"]
+  return $
+    ExprRefinement (ExprName node) (Property closed)
+    `ExprRefinement` Subscript (ExprLit . LitNumber . Number $ fromIntegral i)
+
+mkClosure :: Expr -> [Expr] -> CodeGenM Expr
+mkClosure f args = do
+  mk <- ExprName <$> jname "mkClosure"
+  return $ ExprInvocation mk (Invocation $ f:args)
+
+resolve :: S.Name -> CodeGenM Expr
+resolve nm = do
+  result <- asks (M.lookup nm . topClos)
+  name <- ExprName <$> jvar nm
+  case result of
+    Nothing -> return name
+    Just cs -> do
+      is <- flip map cs . (M.!) <$> asks currClos
+      closure <- mapM index is
+      mkClosure name closure
+      
+    
 
 -- This is a fun word.
 closurify :: Expr -> CodeGenM Expr
