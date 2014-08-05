@@ -33,8 +33,9 @@ var enter = function(closure){
     closure.entry();
 }
 
-var jump = function(f){
-    f();
+var jumpNext = function(f){
+    var next = CONT_STACK.pop();
+    next();
 }
 
 var evalFirst = function(){
