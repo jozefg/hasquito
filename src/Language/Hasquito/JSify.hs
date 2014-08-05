@@ -67,16 +67,9 @@ resolve nm = do
       is <- flip map cs . (M.!) <$> asks currClos
       closure <- mapM index is
       mkClosure name closure
-      
-    
-
--- This is a fun word.
-closurify :: Expr -> CodeGenM Expr
-closurify = undefined
 
 pushStack :: Expr -> Name -> CodeGenM Stmt
 pushStack exp nm = do
-  closed   <- closurify exp
   push     <- jname "push"
   return . StmtExpr $
     singleton (LValue nm [([], Property push)]) `ESApply`
@@ -111,3 +104,4 @@ prim op l r = block [ pushArg r
 lit :: Int -> CodeGenM Stmt
 lit i = block [ pushEval . ExprLit . LitNumber . Number . fromIntegral $ i
               , jump ]
+
