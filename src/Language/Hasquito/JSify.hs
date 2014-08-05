@@ -94,14 +94,18 @@ jump = do
     singleton (LValue jump []) `ESApply`
      (RVInvoke . singleton . Invocation) []
 
-prim :: S.Op -> Expr -> Expr -> CodeGenM Stmt
-prim op l r = block [ pushArg r
+prim :: S.Op -> S.Name -> S.Name -> CodeGenM Stmt
+prim op l r = block [ resolve r >>= pushArg
                     , opCont op >>= pushCont . ExprName
                     , eval >>= pushCont
                     , eval >>= pushCont
-                    , enter l ]
+                    , resolve l >>= enter]
 
 lit :: Int -> CodeGenM Stmt
 lit i = block [ pushEval . ExprLit . LitNumber . Number . fromIntegral $ i
               , jump ]
+
+app :: Expr -> Expr -> CodeGenM Stmt
+app f a = block [ pushArg a
+                , enter f ]
 
