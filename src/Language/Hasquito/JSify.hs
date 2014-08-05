@@ -1,6 +1,8 @@
 module Language.Hasquito.JSify where
 import           Control.Applicative
 import           Control.Monad.Except
+import           Control.Monad.Reader
+import qualified Data.Map as M
 import qualified Data.Text as T
 import           Language.Hasquito.STG
 import qualified Language.Hasquito.Syntax as S
@@ -8,10 +10,12 @@ import           Language.Hasquito.Util
 import           Language.JavaScript.AST
 import           Language.JavaScript.NonEmptyList
 
-jname :: String -> CompilerM Name
+type CodeGenM = ReaderT (M.Map S.Name Int) CompilerM
+
+jname :: String -> CodeGenM Name
 jname = either (throwError . Impossible . T.pack) return . name
 
-jvar :: S.Name -> CompilerM Name
+jvar :: S.Name -> CodeGenM Name
 jvar (S.Gen i)  = either (throwError . Impossible . T.pack) return
                   . name
                   $ ('_' : show i)
@@ -20,24 +24,24 @@ jvar (S.Name s) = either (throwError . Impossible . T.pack) return
                   . T.unpack
                   $ s
 
-block :: [CompilerM Stmt] -> CompilerM Stmt
+block :: [CodeGenM Stmt] -> CodeGenM Stmt
 block = fmap dummyIf . sequence
   where dummyIf ss = StmtIf $ IfStmt (ExprLit $ LitBool True) ss Nothing
 
-opCont :: S.Op -> CompilerM Name
+opCont :: S.Op -> CodeGenM Name
 opCont S.Plus  = jname "doPlus"
 opCont S.Minus = jname "doMinus"
 opCont S.Mult  = jname "doMult"
 opCont S.Div   = jname "doDiv"
 
-enter :: Expr -> CompilerM Stmt
+enter :: Expr -> CodeGenM Stmt
 enter = undefined
 
 -- This is a fun word.
-closurify :: Expr -> CompilerM Expr
+closurify :: Expr -> CodeGenM Expr
 closurify = undefined
 
-pushStack :: Expr -> Name -> CompilerM Stmt
+pushStack :: Expr -> Name -> CodeGenM Stmt
 pushStack exp nm = do
   closed   <- closurify exp
   push     <- jname "push"
@@ -45,33 +49,32 @@ pushStack exp nm = do
     singleton (LValue nm [([], Property push)]) `ESApply`
     (RVInvoke . singleton . Invocation) [exp]
   
-pushArg :: Expr -> CompilerM Stmt
+pushArg :: Expr -> CodeGenM Stmt
 pushArg e = jname "ARG_STACK" >>= pushStack e
 
-pushCont :: Expr -> CompilerM Stmt
+pushCont :: Expr -> CodeGenM Stmt
 pushCont e = jname "CONT_STACK" >>= pushStack e
 
-pushEval :: Expr -> CompilerM Stmt
+pushEval :: Expr -> CodeGenM Stmt
 pushEval e = jname "EVAL_STACK" >>= pushStack e
 
-eval :: CompilerM Expr
+eval :: CodeGenM Expr
 eval = ExprName <$> jname "evalFirst"
 
-jump :: CompilerM Stmt
+jump :: CodeGenM Stmt
 jump = do
   jump <- jname "jumpNext"
   return . StmtExpr $
     singleton (LValue jump []) `ESApply`
      (RVInvoke . singleton . Invocation) []
 
-prim :: S.Op -> Expr -> Expr -> CompilerM Stmt
+prim :: S.Op -> Expr -> Expr -> CodeGenM Stmt
 prim op l r = block [ pushArg r
                     , opCont op >>= pushCont . ExprName
                     , eval >>= pushCont
                     , eval >>= pushCont
                     , enter l ]
 
-
-lit :: Int -> CompilerM Stmt
+lit :: Int -> CodeGenM Stmt
 lit i = block [ pushEval . ExprLit . LitNumber . Number . fromIntegral $ i
               , jump ]
