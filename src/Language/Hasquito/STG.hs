@@ -19,11 +19,11 @@ data TopLevel = Thunk Name SExp
 data SExp = SNum Int
           | SVar Name
           | SApp SExp SExp
-          | FullApp Op SExp SExp
+          | FullApp Op Name Name
           deriving Show
 
 convert :: Exp -> CompilerM SExp
-convert (App (App (Op p) l) r) = FullApp p <$> convert l <*> convert r
+convert (App (App (Op p) (Var n)) (Var m)) = return $ FullApp p n m
 convert Op{} = throwError . Impossible $ "Unsatured operator in STG.convert"
 convert (App l r) = SApp <$> convert l <*> convert r
 convert (Num i) = return $ SNum i
