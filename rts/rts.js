@@ -38,6 +38,10 @@ var jumpNext = function(f){
     next();
 }
 
+var nextArg = function(){
+    return ARG_STACK.pop();
+}
+
 var evalFirst = function(){
     var closure = ARG_STACK.pop();
     NODE = closure;

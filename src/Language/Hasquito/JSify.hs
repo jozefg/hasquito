@@ -94,11 +94,16 @@ jump = do
     singleton (LValue jump []) `ESApply`
      (RVInvoke . singleton . Invocation) []
 
+nextArg :: CodeGenM Expr
+nextArg = do
+  next <- jname "nextArg"
+  return $ ExprInvocation (ExprName next) (Invocation [])
+
 prim :: S.Op -> S.Name -> S.Name -> CodeGenM Stmt
 prim op l r = block [ resolve r >>= pushArg
                     , opCont op >>= pushCont . ExprName
-                    , eval >>= pushCont
-                    , eval >>= pushCont
+                    , eval      >>= pushCont
+                    , eval      >>= pushCont
                     , resolve l >>= enter]
 
 lit :: Int -> CodeGenM Stmt
@@ -109,3 +114,11 @@ app :: Expr -> Expr -> CodeGenM Stmt
 app f a = block [ pushArg a
                 , enter f ]
 
+preamble :: [S.Name] -> [S.Name] -> CodeGenM Stmt -> CodeGenM FnLit
+preamble bound closured body = fmap (FnLit Nothing []) $ do
+  vars <- (++) <$> mapM bindArgVar  bound
+          <*> mapM bindClosVar (zip [0..] closured)
+  FnBody vars . (:[]) <$> body
+  where bindArgVar v =  var <$> jvar v <*> nextArg
+        bindClosVar (i, v) =  var <$> jvar v <*> index i
+        var l r = VarStmt . singleton $ VarDecl l (Just r)
