@@ -39,7 +39,12 @@ opCont S.Mult  = jname "doMult"
 opCont S.Div   = jname "doDiv"
 
 enter :: Expr -> CodeGenM Stmt
-enter = undefined
+enter e = do
+  enterName <- jname "enter"
+  return . StmtExpr $
+    singleton (LValue enterName []) `ESApply`
+     (RVInvoke . singleton . Invocation) [e]
+
 
 -- This is a fun word.
 closurify :: Expr -> CodeGenM Expr
