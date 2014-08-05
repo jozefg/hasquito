@@ -10,7 +10,11 @@ import           Language.Hasquito.Util
 import           Language.JavaScript.AST
 import           Language.JavaScript.NonEmptyList
 
-type CodeGenM = ReaderT (M.Map S.Name Int) CompilerM
+data Closure = Closure { topClos  :: M.Map Name [Name] -- ^ A map of names to closed variables
+                       , currClos :: M.Map Name Int -- ^ A map of closed over variables to their current position
+                       }
+
+type CodeGenM = ReaderT Closure CompilerM
 
 jname :: String -> CodeGenM Name
 jname = either (throwError . Impossible . T.pack) return . name
