@@ -33,6 +33,10 @@ var enter = function(closure){
     closure.entry();
 }
 
+var jump = function(f){
+    f();
+}
+
 var evalFirst = function(){
     var closure = ARG_STACK.pop();
     NODE = closure;
