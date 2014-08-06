@@ -10,12 +10,12 @@ freeVars Num{}           = []
 freeVars Op{}            = []
 freeVars (Var n)         = [n]
 freeVars (App l r)       = freeVars l ++ freeVars r
-freeVars (Lam closed vars body) = freeVars body \\ (vars ++ closed)
+freeVars (Lam closed var body) = freeVars body \\ (var : closed)
 
 saturate :: Exp -> CompilerM Exp
 saturate (Op o) = do
   [l, r] <- sequence [freshName, freshName]
-  return $ Lam [] [l, r] (App (App (Op o) (Var l)) $ Var r)
+  return $ Lam [] l $ Lam [] r (App (App (Op o) (Var l)) $ Var r)
 saturate (App l r) = App <$> saturate l <*> saturate r
 saturate (Lam cs vs body) = Lam cs vs <$> saturate body
 saturate e = return e

@@ -55,18 +55,16 @@ lookupVar v = asks (M.lookup v) >>= \case
   Nothing -> throwError . TCError $ "No such variable " <> pretty v
   Just ty -> return ty
 
-typeLam :: [Name] -> Exp -> WriterT [Constr] TCM Ty
-typeLam vars body = do
-  bindings <- sequence $ zipWith (\v t -> (,) v <$> t) vars fresh
-  resultTy <- local (M.union $ M.fromList bindings) $ typeOf body
-  return . foldr TArr resultTy . map snd $ bindings
-  where fresh = map (fmap $ TVar Nothing Flexible) $ repeat freshName
+typeLam :: Name -> Exp -> WriterT [Constr] TCM Ty
+typeLam var body = do
+  argTy <- TVar Nothing Flexible <$> freshName
+  flip TArr argTy <$> (local (M.insert var argTy) $ typeOf body)
 
 typeOf :: Exp -> WriterT [Constr] TCM Ty
 typeOf Num {} = return TNum
 typeOf Op{} = return $ TNum `TArr` (TNum `TArr` TNum)
 typeOf (Var v) = lookupVar v
-typeOf (Lam [] vars body) = typeLam vars body
+typeOf (Lam [] var body) = typeLam var body
 typeOf Lam{} = throwError . Impossible $ "Nontrivial closure in typechecking!"
 typeOf (App l r) = do
   funTy <- typeOf l

@@ -26,7 +26,7 @@ data Exp = Op Op
          | Num Int
          | Var Name
          | App Exp Exp -- Curried application
-         | Lam [Name] [Name] Exp
+         | Lam [Name] Name Exp
          deriving(Eq, Show)
 
 data Def meta = Def { defTy    :: Ty

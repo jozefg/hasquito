@@ -8,7 +8,7 @@ import Control.Monad.Except
 -- | The top level that all declarations will be
 -- compiled to.
 data TopLevel = Thunk Name SExp
-              | Fun Name [Name] [Name] SExp
+              | Fun Name [Name] Name SExp
               deriving Show
 
 -- | The new expression language, includes
@@ -31,7 +31,7 @@ convert (Var n) = return $ SVar n
 convert Lam{} = throwError . Impossible $ "Unlifted lambda in STG.convert!"
 
 convertDec :: Def m -> CompilerM TopLevel
-convertDec (Def _ nm (Lam closed vars body) _) = Fun nm closed vars <$> convert body
+convertDec (Def _ nm (Lam closed var body) _) = Fun nm closed var <$> convert body
 convertDec (Def _ nm e _) = Thunk nm <$> convert e
 
 toSTG :: [Def m] -> CompilerM [TopLevel]

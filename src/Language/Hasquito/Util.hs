@@ -46,10 +46,9 @@ instance Build Exp where
   build (App l r) = "(" <> build l <> ") (" <> build r <> ")"
   build (Op p)  = build p
   build (Var v)   = build v
-  build (Lam closed vars body) =
-    let closure =  "{" <> mconcat (map build vars) <> "}"
-        bindings = mconcat . map build $ vars
-    in "(fun " <> closure <> " " <> bindings <> " -> " <> build body <> ")"
+  build (Lam closed var body) =
+    let closure =  "{" <> mconcat (map build closed) <> "}"
+    in "(fun " <> closure <> " " <> build var <> " -> " <> build body <> ")"
 
 instance Build (Def m) where
   build (Def ty nm body _) = build nm <> " : " <> build ty <> " = " <> build body
