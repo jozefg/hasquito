@@ -1,9 +1,10 @@
 {-# LANGUAGE OverloadedStrings #-}
 module Language.Hasquito.STG where
 import Control.Applicative
+import Control.Monad.Except
+import Data.Monoid
 import Language.Hasquito.Syntax
 import Language.Hasquito.Util
-import Control.Monad.Except
 
 -- | The top level that all declarations will be
 -- compiled to.
@@ -28,7 +29,7 @@ convert Op{} = throwError . Impossible $ "Unsatured operator in STG.convert"
 convert (App l r) = SApp <$> convert l <*> convert r
 convert (Num i) = return $ SNum i
 convert (Var n) = return $ SVar n
-convert Lam{} = throwError . Impossible $ "Unlifted lambda in STG.convert!"
+convert l@Lam{} = throwError . Impossible $ "Unlifted lambda in STG.convert!" <> pretty l
 
 convertDec :: Def m -> CompilerM TopLevel
 convertDec (Def _ nm (Lam closed var body) _) = Fun nm closed var <$> convert body

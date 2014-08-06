@@ -4,13 +4,14 @@ import Control.Monad.Writer
 import Data.List
 import Language.Hasquito.Syntax
 import Language.Hasquito.Util
+import Debug.Trace
 
 freeVars :: Exp -> [Name]
-freeVars Num{}           = []
-freeVars Op{}            = []
-freeVars (Var n)         = [n]
-freeVars (App l r)       = freeVars l ++ freeVars r
-freeVars (Lam closed var body) = freeVars body \\ (var : closed)
+freeVars Num{}            = []
+freeVars Op{}             = []
+freeVars (Var n)          = [n]
+freeVars (App l r)        = freeVars l ++ freeVars r
+freeVars (Lam _ var body) = freeVars body \\ [var]
 
 saturate :: Exp -> CompilerM Exp
 saturate (Op o) = do
@@ -25,18 +26,19 @@ closConv (Num i) = Num i
 closConv (Op p) = Op p
 closConv (Var n) = Var n
 closConv (App l r) = closConv l `App` closConv r
-closConv (Lam closed vars body) =
-  let others = freeVars (Lam closed vars body)
-  in Lam (closed ++ others) vars body
+closConv (Lam _ vars body) =
+  let others = freeVars (Lam [] vars body)
+  in Lam others vars (closConv body)
 
 liftLam :: Exp -> WriterT [Def ()] CompilerM Exp
 liftLam (Num i) = return $ Num i
 liftLam (Op p) = return $ Op p
 liftLam (Var n) = return $ Var n
 liftLam (App l r) = App <$> liftLam l <*> liftLam r
-liftLam l@(Lam{}) = do
+liftLam l@(Lam closed var body) = do
+  body' <- liftLam body
   name <- lift freshName
-  tell [Def TNum name l ()]
+  tell [Def TNum name (Lam closed var body') ()]
   return (Var name)
 
 simplify :: [Def ()] -> CompilerM [Def ()]
