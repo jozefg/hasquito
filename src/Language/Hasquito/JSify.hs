@@ -20,13 +20,9 @@ jname :: String -> CodeGenM Name
 jname = either (throwError . Impossible . T.pack) return . name
 
 jvar :: S.Name -> CodeGenM Name
-jvar (S.Gen i)  = either (throwError . Impossible . T.pack) return
-                  . name
-                  $ ('_' : show i)
-jvar (S.Name s) = either (throwError . Impossible . T.pack) return
-                  . name
-                  . T.unpack
-                  $ s
+jvar (S.Gen i)  = jname ('_' : show i)
+jvar (S.Name s) = jname . T.unpack $ s
+                  
 
 block :: [CodeGenM Stmt] -> CodeGenM Stmt
 block = fmap dummyIf . sequence
