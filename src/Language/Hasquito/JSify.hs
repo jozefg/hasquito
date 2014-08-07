@@ -22,7 +22,6 @@ jname = either (throwError . Impossible . T.pack) return . name
 jvar :: S.Name -> CodeGenM Name
 jvar (S.Gen i)  = jname ('_' : show i)
 jvar (S.Name s) = jname . T.unpack $ s
-                  
 
 block :: [CodeGenM Stmt] -> CodeGenM Stmt
 block = fmap dummyIf . sequence
@@ -53,16 +52,15 @@ mkClosure f args = do
   mk <- ExprName <$> jname "mkClosure"
   return $ ExprInvocation mk (Invocation $ f:args)
 
-resolve :: S.Name -> CodeGenM Expr
-resolve nm = do
+resolve :: S.Name -> CodeGenM Expr -> CodeGenM Expr
+resolve nm expr = do
   result <- asks (M.lookup nm . topClos)
-  name <- ExprName <$> jvar nm
   case result of
-    Nothing -> return name
+    Nothing -> expr
     Just cs -> do
       is <- flip map cs . (M.!) <$> asks currClos
       closure <- mapM index is
-      mkClosure name closure
+      expr >>= flip mkClosure closure
 
 pushStack :: Expr -> Name -> CodeGenM Stmt
 pushStack exp nm = do
@@ -96,11 +94,11 @@ nextArg = do
   return $ ExprInvocation (ExprName next) (Invocation [])
 
 prim :: S.Op -> S.Name -> S.Name -> CodeGenM Stmt
-prim op l r = block [ resolve r >>= pushArg
-                    , opCont op >>= pushCont . ExprName
-                    , eval      >>= pushCont
-                    , eval      >>= pushCont
-                    , resolve l >>= enter]
+prim op l r = block [ resolve r (ExprName <$> jvar r) >>= pushArg
+                    , ExprName <$> opCont op          >>= pushCont
+                    , eval                            >>= pushCont
+                    , eval                            >>= pushCont
+                    , resolve l (ExprName <$> jvar l) >>= enter]
 
 lit :: Int -> CodeGenM Stmt
 lit i = block [ pushEval . ExprLit . LitNumber . Number . fromIntegral $ i
@@ -115,6 +113,6 @@ preamble bound closured body = fmap (FnLit Nothing []) $ do
   vars <- (++) <$> mapM bindArgVar  bound
           <*> mapM bindClosVar (zip [0..] closured)
   FnBody vars . (:[]) <$> body
-  where bindArgVar v =  var <$> jvar v <*> nextArg
-        bindClosVar (i, v) =  var <$> jvar v <*> index i
+  where bindArgVar v       = var <$> jvar v <*> resolve v nextArg
+        bindClosVar (i, v) = var <$> jvar v <*> resolve v (index i)
         var l r = VarStmt . singleton $ VarDecl l (Just r)
