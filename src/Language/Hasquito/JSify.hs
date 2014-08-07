@@ -2,6 +2,7 @@ module Language.Hasquito.JSify where
 import           Control.Applicative
 import           Control.Monad.Except
 import           Control.Monad.Reader
+import           Control.Monad.Writer
 import qualified Data.Map as M
 import qualified Data.Text as T
 import           Language.Hasquito.STG
@@ -11,10 +12,13 @@ import           Language.JavaScript.AST
 import           Language.JavaScript.NonEmptyList
 
 data Closure = Closure { topClos  :: M.Map S.Name [S.Name] -- ^ A map of names to closed variables
-                       , currClos :: M.Map S.Name Int -- ^ A map of closed over variables to their current position
+                       , currClos :: M.Map S.Name Int      -- ^ A map of closed over variables to their current position
+                       , entryMap :: M.Map S.Name Name     -- ^ Pairs each variable with it's entry code
                        }
 
-type CodeGenM = ReaderT Closure CompilerM
+type Entries = [(Name, FnLit)]
+
+type CodeGenM = WriterT Entries (ReaderT Closure CompilerM)
 
 jname :: String -> CodeGenM Name
 jname = either (throwError . Impossible . T.pack) return . name
