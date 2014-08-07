@@ -28,7 +28,7 @@ class Build a where
 
 instance Build Name where
   build (Name s) = B.fromText s
-  build (Gen i)  = B.fromString (show i)
+  build (Gen i)  = B.singleton '_' <> B.fromString (show i)
 
 instance Build Ty where
   build TNum       = B.fromString "Num"
