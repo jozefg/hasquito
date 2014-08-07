@@ -93,12 +93,12 @@ nextArg = do
   next <- jname "nextArg"
   return $ ExprInvocation (ExprName next) (Invocation [])
 
-prim :: S.Op -> S.Name -> S.Name -> CodeGenM Stmt
-prim op l r = block [ resolve r (ExprName <$> jvar r) >>= pushArg
-                    , ExprName <$> opCont op          >>= pushCont
-                    , eval                            >>= pushCont
-                    , eval                            >>= pushCont
-                    , resolve l (ExprName <$> jvar l) >>= enter]
+prim :: S.Op -> Expr -> Expr -> CodeGenM Stmt
+prim op l r = block [ pushArg r
+                    , ExprName <$> opCont op >>= pushCont
+                    , eval >>= pushCont
+                    , eval >>= pushCont
+                    , enter l]
 
 lit :: Int -> CodeGenM Stmt
 lit i = block [ pushEval . ExprLit . LitNumber . Number . fromIntegral $ i
