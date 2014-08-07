@@ -35,10 +35,10 @@ var = Var <$> name
 lam :: Parser Exp
 lam = do
   string "fun "
-  vars <- many1 (skipSpace *> name)
-  skipSpace *> string "->"
+  v:vars <- reverse <$> many1 (skipSpace *> name)
+  skipSpace <* string "->"
   body <- expr
-  return (Lam [] vars body)
+  return $ foldr (Lam []) (Lam [] v body) vars
 
 eparen :: Parser Exp
 eparen = char '(' *> expr <* skipSpace <* char ')'

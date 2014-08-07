@@ -38,7 +38,7 @@ subst n ty = map $ \(a :~: b) -> substTy n ty a :~: substTy n ty b
 -- the corresponding type substitution. It potentially
 -- throws errors if things won't unify.
 unify :: [Constr] -> TCM Subst
-unify [] = return $ M.empty
+unify [] = return M.empty
 unify ((TNum :~: TNum) : rest) = unify rest
 unify ((TArr l r :~: TArr l' r') : rest) = unify (l :~: l' : r :~: r' : rest)
 unify ((TVar _ Flexible n :~: e) : rest) = M.insert n e <$> unify (subst n e rest)
@@ -48,35 +48,34 @@ unify ((l :~: r) : _) = throwError . TCError $
                         "Couldn't unify " <> pretty l <> " with " <> pretty r
 
 useSubst :: Ty -> Subst -> Ty
-useSubst ty = M.foldWithKey substTy ty
+useSubst = M.foldWithKey substTy
 
 lookupVar :: (MonadReader (M.Map Name Ty) m, MonadError Error m) => Name -> m Ty
 lookupVar v = asks (M.lookup v) >>= \case
   Nothing -> throwError . TCError $ "No such variable " <> pretty v
   Just ty -> return ty
 
-typeLam :: [Name] -> Exp -> WriterT [Constr] TCM Ty
-typeLam vars body = do
-  bindings <- sequence $ zipWith (\v t -> (,) v <$> t) vars fresh
-  resultTy <- local (M.union $ M.fromList bindings) $ typeOf body
-  return . foldr TArr resultTy . map snd $ bindings
-  where fresh = map (fmap $ TVar Nothing Flexible) $ repeat freshName
+typeLam :: Name -> Exp -> WriterT [Constr] TCM Ty
+typeLam var body = do
+  argTy <- TVar Nothing Flexible <$> freshName
+  resultTy <- local (M.insert var argTy) (typeOf body)
+  return (TArr argTy resultTy)
 
 typeOf :: Exp -> WriterT [Constr] TCM Ty
 typeOf Num {} = return TNum
 typeOf Op{} = return $ TNum `TArr` (TNum `TArr` TNum)
 typeOf (Var v) = lookupVar v
-typeOf (Lam [] vars body) = typeLam vars body
+typeOf (Lam [] var body) = typeLam var body
 typeOf Lam{} = throwError . Impossible $ "Nontrivial closure in typechecking!"
 typeOf (App l r) = do
   funTy <- typeOf l
   argTy <- typeOf r
   let tvar = TVar Nothing Flexible -- A new tvar
-  [lvar, rvar] <- fmap (map tvar) $ sequence [freshName, freshName]
+  [lvar, rvar] <- map tvar <$> sequence [freshName, freshName]
   tell [lvar `TArr` rvar :~: funTy, lvar :~: argTy]
   return rvar
 
-typeGlobal :: (M.Map Name Ty) -> Def m -> CompilerM (Def m)
+typeGlobal :: M.Map Name Ty -> Def m -> CompilerM (Def m)
 typeGlobal globals d@Def{..} = flip runReaderT globals $ do
   (ty, constr) <- runWriterT $ typeOf defBody
   sub <- unify constr
