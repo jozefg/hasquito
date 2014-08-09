@@ -15,12 +15,7 @@ data Closure = Closure { topClos  :: M.Map S.Name [S.Name] -- ^ A map of names t
                        , currClos :: M.Map S.Name Int      -- ^ A map of closed over variables to their current position
                        , entryMap :: M.Map S.Name Name     -- ^ Pairs each variable with it's entry code
                        }
-
-type Entries = [(Name, Stmt)]
-type Locals  = [(Name, Expr)]
-
-
-type CodeGenM = WriterT Entries (ReaderT Closure CompilerM)
+type CodeGenM = ReaderT Closure CompilerM
 
 jname :: String -> CodeGenM Name
 jname = either (throwError . Impossible . T.pack) return . name
@@ -122,3 +117,13 @@ preamble bound closured body = fmap (FnLit Nothing []) $ do
   where bindArgVar v       = var <$> jvar v <*> resolve v nextArg
         bindClosVar (i, v) = var <$> jvar v <*> resolve v (index i)
         var l r = VarStmt . singleton $ VarDecl l (Just r)
+
+entryCode :: SExp -> CodeGenM Stmt
+entryCode (SNum i) = lit i
+entryCode (SVar v) = resolve v (ExprName <$> jvar v) >>= enter
+entryCode (SApp (SVar r) (SVar l)) = join $ app
+                                     <$> resolve l (ExprName <$> jvar l)
+                                     <*> resolve r (ExprName <$> jvar r)
+entryCode (FullApp op l r) = join $ prim op
+                             <$> resolve l (ExprName <$> jvar l)
+                             <*> resolve r (ExprName <$> jvar r)
