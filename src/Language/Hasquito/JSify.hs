@@ -1,3 +1,4 @@
+{-# LANGUAGE OverloadedStrings #-}
 module Language.Hasquito.JSify where
 import           Control.Applicative
 import           Control.Monad.Except
@@ -13,7 +14,6 @@ import           Language.JavaScript.NonEmptyList
 
 data Closure = Closure { topClos  :: M.Map S.Name [S.Name] -- ^ A map of names to closed variables
                        , currClos :: M.Map S.Name Int      -- ^ A map of closed over variables to their current position
-                       , entryMap :: M.Map S.Name Name     -- ^ Pairs each variable with it's entry code
                        }
 type CodeGenM = ReaderT Closure CompilerM
 
@@ -121,9 +121,7 @@ preamble bound closured body = fmap (FnLit Nothing []) $ do
 entryCode :: SExp -> CodeGenM Stmt
 entryCode (SNum i) = lit i
 entryCode (SVar v) = resolve v (ExprName <$> jvar v) >>= enter
-entryCode (SApp (SVar r) (SVar l)) = join $ app
-                                     <$> resolve l (ExprName <$> jvar l)
-                                     <*> resolve r (ExprName <$> jvar r)
-entryCode (FullApp op l r) = join $ prim op
-                             <$> resolve l (ExprName <$> jvar l)
-                             <*> resolve r (ExprName <$> jvar r)
+entryCode (SApp (SVar r) (SVar l)) = join $ app <$> fmap ExprName (jvar l) <*> fmap ExprName (jvar r)
+entryCode (FullApp op l r) = join $ prim op <$> fmap ExprName (jvar l) <*> fmap ExprName (jvar r)
+entryCode _ = throwError . Impossible $ "Found unflattened expression in entryCode generation!"
+
