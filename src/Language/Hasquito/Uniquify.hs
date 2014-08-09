@@ -28,7 +28,10 @@ uniqueSTG (FullApp o l r) = return $ FullApp o l r
 
 uniquify :: [TopLevel] -> CompilerM [TopLevel]
 uniquify = mapM unique
-  where unique (Thunk name body) = return (Thunk name body) -- No arguments to mangle
+  where unique (Thunk closed name body) =
+          let closed' = map (mangle name) closed
+              mangleMap = M.fromList $ zip closed closed'
+          in Thunk closed' name <$> runReaderT (uniqueSTG body) mangleMap
         unique (Fun name closed arg body) =
           let closed'   = map (mangle name) closed
               arg'      = mangle name arg

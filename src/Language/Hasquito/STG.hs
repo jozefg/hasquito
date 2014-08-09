@@ -8,7 +8,7 @@ import Language.Hasquito.Util
 
 -- | The top level that all declarations will be
 -- compiled to.
-data TopLevel = Thunk Name SExp
+data TopLevel = Thunk [Name] Name SExp
               | Fun Name [Name] Name SExp
               deriving Show
 
@@ -33,7 +33,7 @@ convert l@Lam{} = throwError . Impossible $ "Unlifted lambda in STG.convert!" <>
 
 convertDec :: Def m -> CompilerM TopLevel
 convertDec (Def _ nm (Lam closed var body) _) = Fun nm closed var <$> convert body
-convertDec (Def _ nm e _) = Thunk nm <$> convert e
+convertDec (Def _ nm e _) = Thunk [] nm <$> convert e
 
 toSTG :: [Def m] -> CompilerM [TopLevel]
 toSTG = mapM convertDec
