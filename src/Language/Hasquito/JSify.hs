@@ -111,11 +111,11 @@ app f a = block [ pushArg a
 
 preamble :: [S.Name] -> [S.Name] -> CodeGenM Stmt -> CodeGenM FnLit
 preamble bound closured body = fmap (FnLit Nothing []) $ do
-  vars <- (++) <$> mapM bindArgVar  bound
+  vars <- (++) <$> mapM bindArgVar bound
           <*> mapM bindClosVar (zip [0..] closured)
   FnBody vars . (:[]) <$> body
-  where bindArgVar v       = var <$> jvar v <*> resolve v nextArg
-        bindClosVar (i, v) = var <$> jvar v <*> resolve v (index i)
+  where bindArgVar v       = var <$> jvar v <*> nextArg
+        bindClosVar (i, v) = var <$> jvar v <*> index i
         var l r = VarStmt . singleton $ VarDecl l (Just r)
 
 entryCode :: SExp -> CodeGenM Stmt
