@@ -122,35 +122,3 @@ preamble bound closured body = fmap (FnLit Nothing []) $ do
   where bindArgVar v       = var <$> jvar v <*> resolve v nextArg
         bindClosVar (i, v) = var <$> jvar v <*> resolve v (index i)
         var l r = VarStmt . singleton $ VarDecl l (Just r)
-
-closure :: SExp -> WriterT Locals CodeGenM Name
-closure (SNum i) = do
-  name <- freshName >>= lift . jvar
-  entryBlock <- lift (lit i)
-  clos <- lift $ mkClosure (ExprName name) []
-  lift $ tell [(name, entryBlock)]
-  tell [(name, clos)]
-  return name
-closure (SVar n) = do
-  name <- freshName >>= lift . jvar
-  clos <- lift $ resolve n (return . ExprName $ name)
-  tell [(name, clos)]
-  return name
-closure (SApp l r) = do
-  lClos <- closure l
-  rClos <- closure r
-  name <- freshName >>= lift . jvar
-  entryCode <- lift $ app (ExprName lClos) (ExprName rClos)
-  clos <- lift $ mkClosure (ExprName name) []
-  lift $ tell [(name, entryCode)]
-  tell [(name, clos)]
-  return name
-closure (FullApp op l r) = do
-  lClos <- closure (SVar l)
-  rClos <- closure (SVar r)
-  name <- lift $ freshName >>= jvar
-  entryCode <- lift $ prim op (ExprName lClos) (ExprName rClos)
-  clos <- lift $ mkClosure (ExprName name) []
-  lift $ tell [(name, entryCode)]
-  tell [(name, clos)]
-  return name
