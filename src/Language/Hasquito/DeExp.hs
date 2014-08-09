@@ -1,4 +1,4 @@
-module DeExp where
+module Language.Hasquito.DeExp where
 import Control.Monad.Writer
 import Language.Hasquito.STG
 import Language.Hasquito.Syntax
@@ -6,13 +6,6 @@ import Language.Hasquito.Util
 import Data.List ((\\))
 
 type DeExpM = WriterT [TopLevel] CompilerM
-
-freeVars :: SExp -> [Name]
-freeVars (SVar v) = [v]
-freeVars (SNum _) = []
-freeVars (FullApp _ l r) = [l, r]
-freeVars (SApp l r) = freeVars l ++ freeVars r
-
 
 flatten :: [Name] -> SExp -> DeExpM SExp
 flatten _ (SNum i) = return (SNum i)

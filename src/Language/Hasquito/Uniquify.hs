@@ -1,8 +1,7 @@
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE LambdaCase #-}
-module Language.Haskell.Uniquify where
+module Language.Hasquito.Uniquify where
 import           Control.Applicative
-import           Control.Monad.Except
 import           Control.Monad.Reader
 import qualified Data.Map as M
 import           Data.Monoid
