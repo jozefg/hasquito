@@ -7,10 +7,12 @@ import Language.Hasquito.TypeCheck as H
 import Language.Hasquito.Util as H
 import Language.Hasquito.Closure as H
 import Language.Hasquito.STG as H
+import Language.Hasquito.Uniquify as H
+import Language.Hasquito.DeExp as H
 import Control.Monad
 
 mainCompiler :: [Def ()] -> CompilerM [TopLevel]
-mainCompiler = typeCheck >=> simplify >=> toSTG
+mainCompiler = typeCheck >=> simplify >=> toSTG >=> deExp >=> uniquify
 
 compileFile :: FilePath -> IO ()
 compileFile file = do
