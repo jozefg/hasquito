@@ -9,7 +9,7 @@ languages, particularly lazy ones.
  - ✓ Closure Conversion
  - ✓ Lambda Lifting
  - ✓ Conversion to STG
- - Compilation of STG to JS
+ - ✓ Compilation of STG to JS
  - Expand primitives with booleans
  - Tests
 
