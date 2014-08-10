@@ -19,7 +19,8 @@ mainCompiler :: [Def ()] -> CompilerM [VarDecl]
 mainCompiler = typeCheck >=> simplify >=> toSTG >=> deExp >=> uniquify >=> jsify
 
 prettyPrint :: [VarDecl] -> IO ()
-prettyPrint = print . foldr1 (<>) . map J.pretty
+prettyPrint = print . foldr1 smush . map J.pretty
+  where smush a b = a <> line <> b
 
 compileFile :: FilePath -> IO ()
 compileFile file = do

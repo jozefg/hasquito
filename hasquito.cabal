@@ -25,6 +25,9 @@ library
                        Language.Hasquito.Parser,
                        Language.Hasquito.Closure,
                        Language.Hasquito.STG,
+                       Language.Hasquito.DeExp,
+                       Language.Hasquito.Uniquify,
+                       Language.Hasquito.JSify,
                        Language.Hasquito
                        
   build-depends:       wl-pprint,
