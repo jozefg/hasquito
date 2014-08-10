@@ -109,11 +109,11 @@ app :: Expr -> Expr -> CodeGenM Stmt
 app f a = block [ pushArg a
                 , enter f ]
 
-preamble :: [S.Name] -> [S.Name] -> CodeGenM Stmt -> CodeGenM FnLit
+preamble :: [S.Name] -> [S.Name] -> Stmt -> CodeGenM FnLit
 preamble bound closured body = fmap (FnLit Nothing []) $ do
   vars <- (++) <$> mapM bindArgVar bound
           <*> mapM bindClosVar (zip [0..] closured)
-  FnBody vars . (:[]) <$> body
+  return $ FnBody vars [body]
   where bindArgVar v       = var <$> jvar v <*> nextArg
         bindClosVar (i, v) = var <$> jvar v <*> index i
         var l r = VarStmt . singleton $ VarDecl l (Just r)
@@ -129,3 +129,26 @@ entryCode closed (SApp (SVar r) (SVar l)) = join $ app <$> handleVar closed r <*
 entryCode closed (FullApp op l r) = join $ prim op <$> handleVar closed l <*> handleVar closed r
 entryCode _ _ = throwError . Impossible $ "Found unflattened expression in entryCode generation!"
 
+extractClosure :: TopLevel -> [S.Name]
+extractClosure (Thunk closed _ _) = closed
+extractClosure (Fun _ closed _ _) = closed
+
+extractName :: TopLevel -> S.Name
+extractName (Thunk _ n _) = n
+extractName (Fun n _ _ _) = n
+
+define :: Name -> FnLit -> VarDecl
+define name = VarDecl name . Just . ExprLit . LitFn
+
+jsify :: [TopLevel] -> CompilerM [VarDecl]
+jsify decls = mapM compile decls
+  where closureMap = M.fromList $ zip (map extractName decls) (map extractClosure decls)
+        buildState = Closure closureMap . M.fromList . flip zip [0..]
+        compile (Thunk closed name body) = flip runReaderT (buildState closed) $ do
+          name' <- jvar name
+          body <- entryCode closed body
+          fmap (define name') . preamble [] closed $ body
+        compile (Fun name closed arg body) = flip runReaderT (buildState closed) $ do
+          name' <- jvar name
+          body <- entryCode (arg : closed) body
+          fmap (define name') . preamble [arg] closed $ body
