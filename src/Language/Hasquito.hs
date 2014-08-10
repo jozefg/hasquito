@@ -24,7 +24,5 @@ prettyPrint = print . foldr1 (<>) . map J.pretty
 compileFile :: FilePath -> IO ()
 compileFile file = do
   parseRes <- parseFile file
-  print parseRes
-  putStrLn "\n\n\n"
   let compRes = parseRes >>= runCompilerM . mainCompiler
   either print prettyPrint compRes
