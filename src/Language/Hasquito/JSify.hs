@@ -118,10 +118,14 @@ preamble bound closured body = fmap (FnLit Nothing []) $ do
         bindClosVar (i, v) = var <$> jvar v <*> index i
         var l r = VarStmt . singleton $ VarDecl l (Just r)
 
-entryCode :: SExp -> CodeGenM Stmt
-entryCode (SNum i) = lit i
-entryCode (SVar v) = resolve v (ExprName <$> jvar v) >>= enter
-entryCode (SApp (SVar r) (SVar l)) = join $ app <$> fmap ExprName (jvar l) <*> fmap ExprName (jvar r)
-entryCode (FullApp op l r) = join $ prim op <$> fmap ExprName (jvar l) <*> fmap ExprName (jvar r)
-entryCode _ = throwError . Impossible $ "Found unflattened expression in entryCode generation!"
+handleVar :: [S.Name] -> S.Name -> CodeGenM Expr
+handleVar closed v | v `elem` closed = ExprName <$> jvar v
+                   | otherwise       = resolve v (ExprName <$> jvar v)
+
+entryCode :: [S.Name] -> SExp -> CodeGenM Stmt
+entryCode _ (SNum i) = lit i
+entryCode closed (SVar v) = handleVar closed v >>= enter
+entryCode closed (SApp (SVar r) (SVar l)) = join $ app <$> handleVar closed r <*> handleVar closed l
+entryCode closed (FullApp op l r) = join $ prim op <$> handleVar closed l <*> handleVar closed r
+entryCode _ _ = throwError . Impossible $ "Found unflattened expression in entryCode generation!"
 
