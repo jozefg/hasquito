@@ -11,7 +11,7 @@ import Data.Function (on)
 
 mainCall :: CompilerM Stmt
 mainCall = do
-  enterName <- either err return $ name "enter"
+  enterName <- either err return $ name "enterMain"
   mainName  <- either err return $ name "main"
   return . StmtExpr $
     singleton (LValue enterName []) `ESApply`

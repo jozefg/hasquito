@@ -30,7 +30,13 @@ var primReturn = function(num){
 }
 
 var enter = function(closure){
+    NODE = closure;
     closure.entry();
+}
+
+var enterMain = function(){
+    var clos = mkClosure(main, []);
+    enter(clos);
 }
 
 var jumpNext = function(f){
