@@ -10,7 +10,8 @@ languages, particularly lazy ones.
  - ✓ Lambda Lifting
  - ✓ Conversion to STG
  - ✓ Compilation of STG to JS
- - Expand primitives with booleans
+ - Implement Update Frames
+ - Add "pattern matching"
  - Tests
 
 ## Language
@@ -22,7 +23,7 @@ Haskell.
     numbers  : Num = + 1 1
     constant : Num = 2
     constantTwo : Num = 3
-    main : Num = identity
+    main : Num = identity constant
 
 Notice that there is no sugar for top level functions. It simplifies
 parsing greatly. Lambdas are implicitly curried though.
