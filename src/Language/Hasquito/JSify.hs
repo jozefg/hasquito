@@ -51,7 +51,8 @@ index i = do
 mkClosure :: Expr -> [Expr] -> CodeGenM Expr
 mkClosure f args = do
   mk <- ExprName <$> jname "mkClosure"
-  return $ ExprInvocation mk (Invocation $ f:args)
+  return $ ExprInvocation mk (Invocation $ [f, list])
+  where list = ExprLit . LitArray . ArrayLit $ args
 
 resolve :: S.Name -> CodeGenM Expr -> CodeGenM Expr
 resolve nm expr = do
