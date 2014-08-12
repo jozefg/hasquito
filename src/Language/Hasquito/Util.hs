@@ -52,8 +52,8 @@ instance Build Exp where
     let closure =  "{" <> mconcat (map build closed) <> "}"
     in "(fun " <> closure <> " " <> build var <> " -> " <> build body <> ")"
 
-instance Build (Def m) where
-  build (Def ty nm body _) = build nm <> " : " <> build ty <> " = " <> build body
+instance Build Def where
+  build (Def ty nm body) = build nm <> " : " <> build ty <> " = " <> build body
 
 pretty :: Build a => a -> T.Text
 pretty = L.toStrict . B.toLazyText . build

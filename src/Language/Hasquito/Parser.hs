@@ -53,7 +53,7 @@ expr :: Parser Exp
 expr = foldl1' App <$> many1 nonrec
   where nonrec = skipSpace *> (try lam <|> eparen <|> prim <|> var <|> num)
 
-def :: Parser (Def ())
+def :: Parser Def
 def = do
   skipSpace
   nm <- name
@@ -62,12 +62,12 @@ def = do
   skipSpace *> char '=' *> skipSpace
   ex <- expr
   skipSpace <* char ';'
-  return (Def t nm ex ())
+  return (Def t nm ex)
 
-file :: T.Text -> Either String [Def ()]
+file :: T.Text -> Either String [Def]
 file = parseOnly (many def <* skipSpace)
 
-parseFile :: FilePath -> IO (Either Error [Def ()])
+parseFile :: FilePath -> IO (Either Error [Def])
 parseFile path = mapL (ParseError . T.pack)  . file <$> (TIO.readFile path)
   where mapL f (Left a)  = Left (f a)
         mapL _ (Right b) = Right b

@@ -1,6 +1,4 @@
 module Language.Hasquito.Syntax where
-import           Control.Monad.Except
-import           Control.Monad.Gen
 import qualified Data.Text as T
 
 data Name = Gen Int | Name T.Text
@@ -29,8 +27,7 @@ data Exp = Op Op
          | Lam [Name] Name Exp
          deriving(Eq, Show)
 
-data Def meta = Def { defTy    :: Ty
-                    , defName  :: Name
-                    , defBody  :: Exp
-                    , defMeta  :: meta }
+data Def = Def { defTy    :: Ty
+               , defName  :: Name
+               , defBody  :: Exp }
               deriving(Eq, Show)

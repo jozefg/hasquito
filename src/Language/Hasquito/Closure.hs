@@ -30,7 +30,7 @@ closConv (Lam _ vars body) =
   let others = freeVars (Lam [] vars body)
   in Lam others vars (closConv body)
 
-liftLam :: Exp -> WriterT [Def ()] CompilerM Exp
+liftLam :: Exp -> WriterT [Def] CompilerM Exp
 liftLam (Num i) = return $ Num i
 liftLam (Op p) = return $ Op p
 liftLam (Var n) = return $ Var n
@@ -38,10 +38,10 @@ liftLam (App l r) = App <$> liftLam l <*> liftLam r
 liftLam l@(Lam closed var body) = do
   body' <- liftLam body
   name <- lift freshName
-  tell [Def TNum name (Lam closed var body') ()]
+  tell [Def TNum name (Lam closed var body')]
   return (Var name)
 
-simplify :: [Def ()] -> CompilerM [Def ()]
+simplify :: [Def] -> CompilerM [Def]
 simplify = fmap concat . mapM scify
   where scify d = do
           b <- saturate (defBody d)

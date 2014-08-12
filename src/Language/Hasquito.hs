@@ -16,7 +16,7 @@ import Language.Hasquito.Sanity as H
 import Language.JavaScript.AST
 import Language.JavaScript.Pretty as J
 
-mainCompiler :: [Def ()] -> CompilerM Program
+mainCompiler :: [Def] -> CompilerM Program
 mainCompiler = typeCheck
                >=> sanityCheck
                >=> simplify

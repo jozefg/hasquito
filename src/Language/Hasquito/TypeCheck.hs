@@ -75,14 +75,14 @@ typeOf (App l r) = do
   tell [lvar `TArr` rvar :~: funTy, lvar :~: argTy]
   return rvar
 
-typeGlobal :: M.Map Name Ty -> Def m -> CompilerM (Def m)
+typeGlobal :: M.Map Name Ty -> Def -> CompilerM Def
 typeGlobal globals d@Def{..} = flip runReaderT globals $ do
   (ty, constr) <- runWriterT $ typeOf defBody
   sub <- unify constr
   _ <- unify [useSubst ty sub :~: defTy] -- If this succeeds then we're OK
   return d
 
-typeCheck :: [Def m] -> CompilerM [Def m]
+typeCheck :: [Def] -> CompilerM [Def]
 typeCheck defs = let globals = M.fromList $ zipWith annotPair (map defName defs) (map defTy defs)
                  in mapM (typeGlobal globals) defs
   where annotPair n t = (n, annot n t)
