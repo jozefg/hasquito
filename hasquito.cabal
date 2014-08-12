@@ -24,6 +24,7 @@ library
                        Language.Hasquito.Util,
                        Language.Hasquito.Parser,
                        Language.Hasquito.Closure,
+                       Language.Hasquito.Sanity,
                        Language.Hasquito.STG,
                        Language.Hasquito.DeExp,
                        Language.Hasquito.Uniquify,
