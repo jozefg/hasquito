@@ -12,11 +12,19 @@ import Language.Hasquito.Syntax as H
 import Language.Hasquito.TypeCheck as H
 import Language.Hasquito.Uniquify as H
 import Language.Hasquito.Util as H
+import Language.Hasquito.Sanity as H
 import Language.JavaScript.AST
 import Language.JavaScript.Pretty as J
 
 mainCompiler :: [Def ()] -> CompilerM Program
-mainCompiler = typeCheck >=> simplify >=> toSTG >=> deExp >=> uniquify >=> jsify >=> makeMain
+mainCompiler = typeCheck
+               >=> sanityCheck
+               >=> simplify
+               >=> toSTG
+               >=> deExp
+               >=> uniquify
+               >=> jsify
+               >=> makeMain
 
 compileFile :: FilePath -> IO ()
 compileFile file = do
