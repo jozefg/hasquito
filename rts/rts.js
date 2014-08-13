@@ -36,8 +36,8 @@ var enter = function(closure){
 
 var enterMain = function(){
     var clos = mkClosure(main, []);
+    CONT_STACK.push(terminal);
     enter(clos);
-    console.log(EVAL_STACK.pop());
 }
 
 var jumpNext = function(f){
@@ -74,4 +74,8 @@ var doDiv = function(){
     left  = EVAL_STACK.pop();
     right = EVAL_STACK.pop();
     EVAL_STACK.push(left / right);
+}
+
+var terminal = function(){
+    console.log(EVAL_STACK.pop());
 }
