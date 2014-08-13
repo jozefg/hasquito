@@ -10,10 +10,9 @@ import Control.Monad.Except
 mainCall :: CompilerM Stmt
 mainCall = do
   enterName <- either err return $ name "enterMain"
-  mainName  <- either err return $ name "main"
   return . StmtExpr $
     singleton (LValue enterName []) `ESApply`
-     (RVInvoke . singleton . Invocation) [ExprName mainName]
+     (RVInvoke . singleton . Invocation) []
   where err _ = throwError . Impossible $ "Cannot convert name to js var"
 
 makeMain :: [VarDecl] -> CompilerM Program
