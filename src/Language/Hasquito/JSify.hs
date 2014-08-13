@@ -3,7 +3,6 @@ module Language.Hasquito.JSify where
 import           Control.Applicative
 import           Control.Monad.Except
 import           Control.Monad.Reader
-import           Control.Monad.Writer
 import qualified Data.Map as M
 import qualified Data.Text as T
 import           Language.Hasquito.STG
