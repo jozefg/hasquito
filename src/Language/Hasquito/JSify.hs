@@ -25,7 +25,8 @@ jvar (S.Name s) = jname . T.unpack $ s
 
 block :: [CodeGenM Stmt] -> CodeGenM Stmt
 block = fmap dummyIf . sequence
-  where dummyIf ss = StmtIf $ IfStmt (ExprLit $ LitBool True) ss Nothing
+  where dummyIf ss = StmtIf $ IfStmt true ss Nothing
+        true = ExprLit . LitNumber . Number $ 1
 
 opCont :: S.Op -> CodeGenM Name
 opCont S.Plus  = jname "doPlus"
