@@ -15,6 +15,7 @@ import Language.Hasquito.Util as H
 import Language.Hasquito.Sanity as H
 import Language.JavaScript.AST
 import Language.JavaScript.Pretty as J
+import System.Exit
 
 mainCompiler :: [Def] -> CompilerM Program
 mainCompiler = typeCheck
@@ -26,8 +27,10 @@ mainCompiler = typeCheck
                >=> jsify
                >=> makeMain
 
-compileFile :: FilePath -> IO ()
+compileFile :: FilePath -> IO String
 compileFile file = do
   parseRes <- parseFile file
   let compRes = parseRes >>= runCompilerM . mainCompiler
-  either print (print . J.pretty) compRes
+  case compRes of
+    Right prog -> return . show . J.pretty $ prog
+    Left err   -> print err >> exitWith (ExitFailure 1)
