@@ -13,8 +13,10 @@ flatten _ (SVar v) = return $ SVar v
 flatten _ (FullApp op l r) = return $ FullApp op l r
 flatten closed (SApp l r) = do
   [lVar, rVar] <- sequence [freshName, freshName]
-  tell $ [Thunk closed lVar l
-         ,Thunk closed rVar r]
+  l' <- flatten closed l
+  r' <- flatten closed r
+  tell $ [Thunk closed lVar l'
+         ,Thunk closed rVar r']
   return (SApp (SVar lVar) (SVar rVar))
 
 deExp :: [TopLevel] -> CompilerM [TopLevel]
