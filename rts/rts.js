@@ -37,6 +37,7 @@ var enter = function(closure){
 var enterMain = function(){
     var clos = mkClosure(main, []);
     enter(clos);
+    console.log(EVAL_STACK.pop());
 }
 
 var jumpNext = function(f){
