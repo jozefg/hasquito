@@ -54,14 +54,19 @@ mkClosure f args = do
   return $ ExprInvocation mk (Invocation $ [f, list])
   where list = ExprLit . LitArray . ArrayLit $ args
 
+findVar :: M.Map S.Name Int -> S.Name -> CodeGenM Expr
+findVar m name = case M.lookup name m of
+  Just i  -> index i
+  Nothing -> ExprName <$> jvar name
+
 resolve :: S.Name -> CodeGenM Expr -> CodeGenM Expr
 resolve nm expr = do
   result <- asks (M.lookup nm . topClos)
   case result of
     Nothing -> expr
     Just cs -> do
-      is <- flip map cs . (M.!) <$> asks currClos
-      closure <- mapM index is
+      clos <- asks currClos
+      closure <- mapM (findVar clos) cs
       expr >>= flip mkClosure closure
 
 pushStack :: Expr -> Name -> CodeGenM Stmt

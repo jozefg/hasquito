@@ -1,10 +1,9 @@
 module Language.Hasquito.Closure where
-import Control.Applicative
-import Control.Monad.Writer
-import Data.List
+import           Control.Applicative
+import           Control.Monad.Writer
 import qualified Data.Set as S
-import Language.Hasquito.Syntax
-import Language.Hasquito.Util
+import           Language.Hasquito.Syntax
+import           Language.Hasquito.Util
 
 freeVars :: Exp -> S.Set Name
 freeVars Num{}            = S.empty

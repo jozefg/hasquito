@@ -17,24 +17,24 @@ type UniquifyM = ReaderT (M.Map Name Name) CompilerM
 mangle :: Name -> Name -> Name
 mangle scope n = Name $ pretty scope <> T.singleton '_' <> pretty n
 
-uniqueSTG :: SExp -> UniquifyM SExp
-uniqueSTG (SVar v) = asks (M.lookup v) >>= \case
+uniqueSTG :: Name -> SExp -> UniquifyM SExp
+uniqueSTG _ (SVar v) = asks (M.lookup v) >>= \case
   Just v' -> return (SVar v') -- Local, mangled variable
   Nothing -> return (SVar v)  -- Global, already unique variable
-uniqueSTG (SNum i) = return $ SNum i
-uniqueSTG (SApp l r) = SApp <$> uniqueSTG l <*> uniqueSTG r
-uniqueSTG (FullApp o l r) = return $ FullApp o l r
+uniqueSTG _ (SNum i) = return $ SNum i
+uniqueSTG n (SApp l r) = SApp <$> uniqueSTG n l <*> uniqueSTG n r
+uniqueSTG n (FullApp o l r) = return $ FullApp o (mangle n l) (mangle n r)
 
 uniquify :: [TopLevel] -> CompilerM [TopLevel]
 uniquify = mapM unique
   where unique (Thunk closed name body) =
           let closed' = map (mangle name) closed
-              mangleMap = M.fromList $ zip closed closed'
-          in Thunk closed' name <$> runReaderT (uniqueSTG body) mangleMap
+              mangleMap = M.empty -- M.fromList $ zip closed closed'
+          in Thunk closed name <$> runReaderT (uniqueSTG name body) mangleMap
         unique (Fun name closed arg body) =
           let closed'   = map (mangle name) closed
               arg'      = mangle name arg
-              mangleMap = M.fromList $ (arg, arg') : zip closed closed'
-          in Fun name closed' arg' <$> runReaderT (uniqueSTG body) mangleMap
+              mangleMap = M.empty -- (arg, arg') : zip closed closed'
+          in Fun name closed arg <$> runReaderT (uniqueSTG name body) mangleMap
           
 
