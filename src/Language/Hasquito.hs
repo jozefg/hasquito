@@ -23,7 +23,6 @@ mainCompiler = typeCheck
                >=> simplify
                >=> toSTG
                >=> deExp
-               >=> uniquify
                >=> jsify
                >=> makeMain
 
