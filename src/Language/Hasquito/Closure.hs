@@ -2,15 +2,16 @@ module Language.Hasquito.Closure where
 import Control.Applicative
 import Control.Monad.Writer
 import Data.List
+import qualified Data.Set as S
 import Language.Hasquito.Syntax
 import Language.Hasquito.Util
 
-freeVars :: Exp -> [Name]
-freeVars Num{}            = []
-freeVars Op{}             = []
-freeVars (Var n)          = [n]
-freeVars (App l r)        = freeVars l ++ freeVars r
-freeVars (Lam _ var body) = freeVars body \\ [var]
+freeVars :: Exp -> S.Set Name
+freeVars Num{}            = S.empty
+freeVars Op{}             = S.empty
+freeVars (Var n)          = S.singleton n
+freeVars (App l r)        = freeVars l `S.union` freeVars r
+freeVars (Lam _ var body) = S.delete var (freeVars body)
 
 saturate :: Exp -> CompilerM Exp
 saturate (Op o) = do
@@ -26,7 +27,7 @@ closConv (Op p) = Op p
 closConv (Var n) = Var n
 closConv (App l r) = closConv l `App` closConv r
 closConv (Lam _ vars body) =
-  let others = freeVars (Lam [] vars body)
+  let others = S.toList (freeVars (Lam [] vars body))
   in Lam others vars (closConv body)
 
 liftLam :: Exp -> WriterT [Def] CompilerM Exp
@@ -34,7 +35,7 @@ liftLam (Num i) = return $ Num i
 liftLam (Op p) = return $ Op p
 liftLam (Var n) = return $ Var n
 liftLam (App l r) = App <$> liftLam l <*> liftLam r
-liftLam l@(Lam closed var body) = do
+liftLam (Lam closed var body) = do
   body' <- liftLam body
   name <- lift freshName
   tell [Def TNum name (Lam closed var body')]
