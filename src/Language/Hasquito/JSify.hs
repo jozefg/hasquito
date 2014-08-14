@@ -147,9 +147,9 @@ jsify decls = mapM compile decls
         buildState = Closure closureMap . M.fromList . flip zip [0..]
         compile (Thunk closed name body) = flip runReaderT (buildState closed) $ do
           name' <- jvar name
-          body <- entryCode closed body
-          fmap (define name') . preamble [] closed $ body
+          body' <- entryCode closed body
+          fmap (define name') . preamble [] closed $ body'
         compile (Fun name closed arg body) = flip runReaderT (buildState closed) $ do
           name' <- jvar name
-          body <- entryCode (arg : closed) body
-          fmap (define name') . preamble [arg] closed $ body
+          body' <- entryCode (arg : closed) body
+          fmap (define name') . preamble [arg] closed $ body'
