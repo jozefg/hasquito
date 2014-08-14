@@ -4,7 +4,6 @@ import Control.Monad.Writer
 import Data.List
 import Language.Hasquito.Syntax
 import Language.Hasquito.Util
-import Debug.Trace
 
 freeVars :: Exp -> [Name]
 freeVars Num{}            = []

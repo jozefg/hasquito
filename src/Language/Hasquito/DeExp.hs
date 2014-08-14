@@ -3,7 +3,6 @@ import Control.Monad.Writer
 import Language.Hasquito.STG
 import Language.Hasquito.Syntax
 import Language.Hasquito.Util
-import Data.List ((\\))
 
 type DeExpM = WriterT [TopLevel] CompilerM
 
