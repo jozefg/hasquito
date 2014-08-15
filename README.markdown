@@ -51,7 +51,8 @@ pull requests welcome ;)
 ## Contributing
 
 Interested in contributing? Awesome! Let me know what you're
-interested in implementing and I'll guide you further. Please email me
-at jozefg AT cmu DOT edu.
+interested in implementing and we'll chat further.
+
+Please email me at jozefg AT cmu DOT edu.
 
 [js-lib]: https://hackage.haskell.org/package/js-good-parts-0.0.7
