@@ -19,11 +19,11 @@ languages, particularly lazy ones.
 Hasquito compiles a tiny language that is vaguely similar to ML or
 Haskell.
 
-    identity : a -> a = fun x -> x
-    numbers  : Num = + 1 1
-    constant : Num = 2
-    constantTwo : Num = 3
-    main : Num = identity constant
+    identity : a -> a = fun x -> x;
+    numbers  : Num = + 1 1;
+    constant : Num = 2;
+    constantTwo : Num = 3;
+    main : Num = identity constant;
 
 Notice that there is no sugar for top level functions. It simplifies
 parsing greatly. Lambdas are implicitly curried though.

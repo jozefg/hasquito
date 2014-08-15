@@ -24,15 +24,14 @@ annot n (TArr l r) = annot n l `TArr` annot n r
 annot n (TVar Nothing Rigid m) = TVar (Just n) Rigid m
 annot _ t = t
 
-substTy :: Name -> Ty -> Ty -> Ty
-substTy _ _ TNum = TNum
-substTy n e (TArr l r) = substTy n e l `TArr` substTy n e r
-substTy n e (TVar Nothing Flexible m) | n == m     = e
-                                      | otherwise = TVar Nothing Flexible m
-substTy _ _ t = t
+substTy :: Flex -> Maybe Name -> Name -> Ty -> Ty -> Ty
+substTy _ _ _ _ TNum = TNum
+substTy f s n e (TArr l r) = substTy f s n e l `TArr` substTy f s n e r
+substTy f s n e (TVar s' f' m) | f == f' && s == s' && n == m = e
+                               | otherwise = TVar s' f' m
 
 subst :: Name -> Ty -> [Constr] -> [Constr]
-subst n ty = map $ \(a :~: b) -> substTy n ty a :~: substTy n ty b
+subst n ty = map $ \(a :~: b) -> substTy Flexible Nothing n ty a :~: substTy Flexible Nothing n ty b
 
 -- | Unify solves a list of constraints and produces
 -- the corresponding type substitution. It potentially
@@ -48,12 +47,26 @@ unify ((l :~: r) : _) = throwError . TCError $
                         "Couldn't unify " <> pretty l <> " with " <> pretty r
 
 useSubst :: Ty -> Subst -> Ty
-useSubst = M.foldWithKey substTy
+useSubst = M.foldWithKey (substTy Flexible Nothing)
 
-lookupVar :: (MonadReader (M.Map Name Ty) m, MonadError Error m) => Name -> m Ty
+-- | This generates a "fresh" type for all global variables to
+-- allow for types to specify polymorphic types.
+cleanUpTVar :: Ty -> WriterT [Constr] TCM Ty
+cleanUpTVar ty = do
+  let rigids = rigidTVars ty
+  newVars <- sequence
+             . zipWith (fmap . (,)) rigids
+             . repeat $ TVar Nothing Flexible <$> freshName
+  return $ foldr removeRigid ty newVars
+  where removeRigid ((scope, name), var) = substTy Rigid scope name var
+        rigidTVars (TVar scope Rigid name) = [(scope, name)]
+        rigidTVars (TArr l r)              = rigidTVars l ++ rigidTVars r
+        rigidTVars _                       = []
+
+lookupVar :: Name -> WriterT [Constr] TCM Ty
 lookupVar v = asks (M.lookup v) >>= \case
   Nothing -> throwError . TCError $ "No such variable " <> pretty v
-  Just ty -> return ty
+  Just ty -> cleanUpTVar ty
 
 typeLam :: Name -> Exp -> WriterT [Constr] TCM Ty
 typeLam var body = do
