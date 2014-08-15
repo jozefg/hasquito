@@ -27,7 +27,6 @@ library
                        Language.Hasquito.Sanity,
                        Language.Hasquito.STG,
                        Language.Hasquito.DeExp,
-                       Language.Hasquito.Uniquify,
                        Language.Hasquito.JSify,
                        Language.Hasquito.MakeMain,
                        Language.Hasquito
