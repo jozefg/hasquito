@@ -4,6 +4,8 @@ Hasquito is a small compiler for a smaller language. It'd designed to
 illustrate some of the basic principles behind compiling functional
 languages, particularly lazy ones.
 
+The road map for this project looks something like
+
  - ✓ Parsing
  - ✓ Type Checking
  - ✓ Closure Conversion
@@ -28,6 +30,23 @@ Haskell.
 Notice that there is no sugar for top level functions. It simplifies
 parsing greatly. Lambdas are implicitly curried though.
 
+There are currently 4 primitive operations: `+`, `-`, `*`, and `/`. Other
+than that the language is just function application and lambdas.
+
+A Hasquito program when run will evaluate `main : Num` and print the result.
+
+## Using hasquitoc
+
+To compile pieces of Hasquito code first build the compiler with
+
+    cabal build
+
+This should generate an executable called `hasquitoc`. Next all you
+have to do is call `hasquitoc` on the file containing some code.
+
+This will create a file called `out.js` with the runtime system and
+compiled code. Run this file with node.js or something similar.
+
 ## Why Javascript
 
 It's fair to ask we we're bothering to compile everything to STG if
@@ -46,7 +65,7 @@ small subset of the features that could easily be found in C or even
 assembly. It's just that with JS the code is a lot safer and easier to write.
 
 If you find this so deeply offensive that you can't let this stand,
-pull requests welcome ;)
+pull requests welcome :)
 
 ## Contributing
 
