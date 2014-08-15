@@ -56,26 +56,26 @@ var evalFirst = function(){
 }
 
 var doPlus = function(){
-    left  = EVAL_STACK.pop();
     right = EVAL_STACK.pop();
+    left  = EVAL_STACK.pop();
     EVAL_STACK.push(left + right);
     jumpNext();
 }
 var doMinus = function(){
-    left  = EVAL_STACK.pop();
     right = EVAL_STACK.pop();
+    left  = EVAL_STACK.pop();
     EVAL_STACK.push(left - right);
     jumpNext();
 }
 var doMult = function(){
-    left  = EVAL_STACK.pop();
     right = EVAL_STACK.pop();
+    left  = EVAL_STACK.pop();
     EVAL_STACK.push(left * right);
     jumpNext();
 }
 var doDiv = function(){
-    left  = EVAL_STACK.pop();
     right = EVAL_STACK.pop();
+    left  = EVAL_STACK.pop();
     EVAL_STACK.push(left / right);
     jumpNext();
 }
