@@ -104,7 +104,6 @@ prim :: S.Op -> Expr -> Expr -> CodeGenM Stmt
 prim op l r = block [ pushArg r
                     , ExprName <$> opCont op >>= pushCont
                     , eval >>= pushCont
-                    , eval >>= pushCont
                     , enter l]
 
 lit :: Int -> CodeGenM Stmt
