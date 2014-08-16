@@ -51,4 +51,5 @@ for name in gather_names():
     else:
         failed += 1
 
+os.remove("out.js")
 print "Finished, %s succeeded and %s failed" % (succeeded, failed)
