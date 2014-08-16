@@ -1,0 +1,4 @@
+ignore : a -> Num = fun x -> 0;
+looper : a = looper;
+
+main : Num = ignore looper;
