@@ -23,11 +23,6 @@ jvar :: S.Name -> CodeGenM Name
 jvar (S.Gen i)  = jname ('_' : show i)
 jvar (S.Name s) = jname . T.unpack $ s
 
-block :: [CodeGenM Stmt] -> CodeGenM Stmt
-block = fmap dummyIf . sequence
-  where dummyIf ss = StmtIf $ IfStmt true ss Nothing
-        true = ExprLit . LitNumber . Number $ 1
-
 opCont :: S.Op -> CodeGenM Name
 opCont S.Plus  = jname "doPlus"
 opCont S.Minus = jname "doMinus"
@@ -100,25 +95,25 @@ nextArg = do
   next <- jname "nextArg"
   return $ ExprInvocation (ExprName next) (Invocation [])
 
-prim :: S.Op -> Expr -> Expr -> CodeGenM Stmt
-prim op l r = block [ pushArg r
-                    , ExprName <$> opCont op >>= pushCont
-                    , eval >>= pushCont
-                    , enter l]
+prim :: S.Op -> Expr -> Expr -> CodeGenM [Stmt]
+prim op l r = sequence [ pushArg r
+                       , ExprName <$> opCont op >>= pushCont
+                       , eval >>= pushCont
+                       , enter l]
 
-lit :: Int -> CodeGenM Stmt
-lit i = block [ pushEval . ExprLit . LitNumber . Number . fromIntegral $ i
-              , jump ]
+lit :: Int -> CodeGenM [Stmt]
+lit i = sequence [ pushEval . ExprLit . LitNumber . Number . fromIntegral $ i
+                 , jump ]
 
-app :: Expr -> Expr -> CodeGenM Stmt
-app f a = block [ pushArg a
-                , enter f ]
+app :: Expr -> Expr -> CodeGenM [Stmt]
+app f a = sequence [ pushArg a
+                   , enter f ]
 
-preamble :: [S.Name] -> [S.Name] -> Stmt -> CodeGenM FnLit
+preamble :: [S.Name] -> [S.Name] -> [Stmt] -> CodeGenM FnLit
 preamble bound closured body = fmap (FnLit Nothing []) $ do
   vars <- (++) <$> mapM bindArgVar bound
           <*> mapM bindClosVar (zip [0..] closured)
-  return $ FnBody vars [body]
+  return $ FnBody vars body
   where bindArgVar v       = var <$> jvar v <*> nextArg
         bindClosVar (i, v) = var <$> jvar v <*> index i
         var l r = VarStmt . singleton $ VarDecl l (Just r)
@@ -127,9 +122,9 @@ handleVar :: [S.Name] -> S.Name -> CodeGenM Expr
 handleVar closed v | v `elem` closed = ExprName <$> jvar v
                    | otherwise       = resolve v (ExprName <$> jvar v)
 
-entryCode :: [S.Name] -> SExp -> CodeGenM Stmt
+entryCode :: [S.Name] -> SExp -> CodeGenM [Stmt]
 entryCode _ (SNum i) = lit i
-entryCode closed (SVar v) = handleVar closed v >>= enter
+entryCode closed (SVar v) = (:[]) <$> (handleVar closed v >>= enter)
 entryCode closed (SApp (SVar r) (SVar l)) = join $ app <$> handleVar closed r <*> handleVar closed l
 entryCode closed (FullApp op l r) = join $ prim op <$> handleVar closed l <*> handleVar closed r
 entryCode _ _ = throwError . Impossible $ "Found unflattened expression in entryCode generation!"
