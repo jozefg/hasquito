@@ -6,7 +6,7 @@ import os.path as path
 # directory
 COMPILER = './dist/build/hasquitoc/hasquitoc'
 JS_RTS = 'nodejs'
-TEST_PROGRAM_DIR = "test/programs/"
+TEST_PROGRAM_DIR = "programs/"
 
 # Evil, but I'm lazy. This breaks if the top level directory
 # isn't hasquito.
