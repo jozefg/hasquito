@@ -39,6 +39,14 @@ functionApplicationRes = [ Def TNum (Name "oneArgument") (App (Op Plus) (Num 1))
                          , Def TNum (Name "twoArgument") (App (App (Op Plus) (Num 1)) (Num 1))
                          , Def TNum (Name "threeArgument") (App (App (App (Op Plus) (Num 1)) (Num 1)) (Num 1))]
 
+literals :: [T.Text]
+literals = [ "foo : Num = 1;"
+           , "bar : Num = 100;"
+           , "baz : Num = -20;" ]
+literalsRes :: [Def]
+literalsRes = [ Def TNum (Name "foo") (Num 1)
+              , Def TNum (Name "bar") (Num 100) ]
+
 doParse :: T.Text -> Maybe Def
 doParse s = case file s of
   Right [d] -> Just d
@@ -52,4 +60,5 @@ parserTest :: Test
 parserTest = testGroup "Parser Test"
              [ testGroup "Variable names"        (doTest variableNames variableNamesRes)
              , testGroup "Operators"             (doTest operators operatorsRes)
-             , testGroup "Function Application"  (doTest functionApplication functionApplicationRes)]
+             , testGroup "Function Application"  (doTest functionApplication functionApplicationRes)
+             , testGroup "Literals"              (doTest literals literalsRes)]
