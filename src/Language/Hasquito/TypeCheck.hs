@@ -54,8 +54,7 @@ useSubst = M.foldWithKey (substTy Flexible Nothing)
 cleanUpTVar :: Ty -> WriterT [Constr] TCM Ty
 cleanUpTVar ty = do
   let rigids = rigidTVars ty
-  newVars <- sequence
-             . zipWith (fmap . (,)) rigids
+  newVars <- zipWithM (fmap . (,)) rigids
              . repeat $ TVar Nothing Flexible <$> freshName
   return $ foldr removeRigid ty newVars
   where removeRigid ((scope, name), var) = substTy Rigid scope name var
