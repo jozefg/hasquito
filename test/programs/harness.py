@@ -25,7 +25,7 @@ def gather_names():
     return program_names
 
 def compile(prog_name):
-    subprocess.call([COMPILER, prog_name + ".hq"])
+    subprocess.call([COMPILER, path.join(TEST_PROGRAM_DIR, prog_name + ".hq")])
 
 def run():
     return subprocess.check_output([JS_RTS, "out.js"])[0:-1] # Ignore the newline
@@ -35,14 +35,19 @@ def test(prog_name):
     compile(prog_name)
     print "Running %s ..." % (prog_name)
     output = run()
-
     expected = open(path.join(TEST_PROGRAM_DIR, prog_name + ".result")).read()
-    if output == expected:
-        print "%s succeeded" % (prog_name)
-    else:
+    
+    if output != expected:
         print "FAILURE: %s, got %s not %s" % (prog_name, output, expected)
+        return False
+    return True
 
+succeeded = 0
+failed    = 0
 for name in gather_names():
-    test(name)
+    if test(name):
+        succeeded += 1
+    else:
+        failed += 1
 
-print "Finished"
+print "Finished, %s succeeded and %s failed" % (succeeded, failed)
