@@ -18,12 +18,13 @@ type Subst = M.Map Name Ty
 -- | The type checker monad
 type TCM = ReaderT (M.Map Name Ty) CompilerM
 
--- Annotate all rigid tvars with a name
+-- | Annotate all rigid tvars with a name
 annot :: Name -> Ty -> Ty
 annot n (TArr l r) = annot n l `TArr` annot n r
 annot n (TVar Nothing Rigid m) = TVar (Just n) Rigid m
 annot _ t = t
 
+-- | Replace a type variable with a different type
 substTy :: Flex -> Maybe Name -> Name -> Ty -> Ty -> Ty
 substTy _ _ _ _ TNum = TNum
 substTy f s n e (TArr l r) = substTy f s n e l `TArr` substTy f s n e r
