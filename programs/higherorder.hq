@@ -1,2 +1,2 @@
 higherOrder : (Num -> Num) -> Num -> Num = fun f x -> f x;
-main : Num = higherOrder (+ 1) 2
+main : Num = higherOrder (+ 1) 2;
