@@ -1,0 +1,4 @@
+identity : a -> a = fun x -> x;
+constant : a -> b -> a = fun x y -> x;
+
+main : Num = constant (identity +) 1 1 2;
