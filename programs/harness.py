@@ -32,9 +32,10 @@ def run():
     return subprocess.check_output([JS_RTS, "out.js"])[0:-1] # Ignore the newline
 
 def test(prog_name):
-    print "Compiling %s ..." % (prog_name)
+    print "Testing %s:" % (prog_name)
+    print "  Compiling %s ..." % (prog_name)
     compile(prog_name)
-    print "Running %s ..." % (prog_name)
+    print "  Running %s ..." % (prog_name)
     output = run()
     expected = open(path.join(TEST_PROGRAM_DIR, prog_name + ".result")).read()
     
