@@ -8,7 +8,8 @@ COMPILER = './dist/build/hasquitoc/hasquitoc'
 JS_RTS = 'nodejs'
 TEST_PROGRAM_DIR = "test/programs/"
 
-# Evil, but I'm lazy
+# Evil, but I'm lazy. This breaks if the top level directory
+# isn't hasquito.
 while path.split(os.getcwd())[1] != "hasquito":
     os.chdir('..')
 
