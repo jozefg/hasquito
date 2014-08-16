@@ -42,10 +42,12 @@ To compile pieces of Hasquito code first build the compiler with
     cabal build
 
 This should generate an executable called `hasquitoc`. Next all you
-have to do is call `hasquitoc` on the file containing some code.
+have to do is call `hasquitoc` on the file containing some code. The
+compiler will create a file called `out.js` with the runtime system
+and compiled code. Run this file with node.js or something similar.
 
-This will create a file called `out.js` with the runtime system and
-compiled code. Run this file with node.js or something similar.
+Be sure to take a look at `programs` which has several example
+test programs as well as a harness for running them.
 
 ## Why Javascript
 
