@@ -65,7 +65,7 @@ def = do
   return (Def t nm ex)
 
 file :: T.Text -> Either String [Def]
-file = parseOnly (many def <* skipSpace)
+file = parseOnly (many def <* skipSpace <* endOfInput)
 
 parseFile :: FilePath -> IO (Either Error [Def])
 parseFile path = mapL (ParseError . T.pack)  . file <$> (TIO.readFile path)
