@@ -1,0 +1,4 @@
+constant      : Num = if (+ 2 1) 4 3;
+otherConstant : Num = if (- 2 2) 0 1;
+
+main : Num = (if 5 * +) constant otherConstant;
