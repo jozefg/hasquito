@@ -56,7 +56,7 @@ var evalFirst = function(){
 }
 
 var sif = function(n, l, r){
-    pushCont(function(){
+    CONT_STACK.push(function(){
         var nRes = EVAL_STACK.pop();
         if(nRes === 0){
             enter(l);
