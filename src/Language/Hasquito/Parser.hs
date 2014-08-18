@@ -52,14 +52,17 @@ prim = Op <$> (    char '+' *> return Plus
 ifz :: Parser Exp
 ifz = do
   string "if" *> skipSpace
-  n <- expr <* skipSpace
-  l <- expr <* skipSpace
-  r <- expr <* skipSpace
+  n <- nonrecExp <* skipSpace
+  l <- nonrecExp <* skipSpace
+  r <- nonrecExp <* skipSpace
   return (IfZ n l r)
 
+nonrecExp :: Parser Exp
+nonrecExp = skipSpace *> (try lam <|> ifz <|> eparen <|> prim <|> var <|> num)
+
 expr :: Parser Exp
-expr = foldl1' App <$> many1 nonrec
-  where nonrec = skipSpace *> (try lam <|> eparen <|> ifz <|> prim <|> var <|> num)
+expr = foldl1' App <$> many1 nonrecExp
+
 
 def :: Parser Def
 def = do
