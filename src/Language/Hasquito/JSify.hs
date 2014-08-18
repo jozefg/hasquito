@@ -83,6 +83,14 @@ pushEval e = jname "EVAL_STACK" >>= pushStack e
 eval :: CodeGenM Expr
 eval = ExprName <$> jname "evalFirst"
 
+sif :: Expr -> Expr -> Expr -> CodeGenM Stmt
+sif n l r = do
+  sif <- jname "sif"
+  return . StmtExpr $
+    singleton (LValue sif []) `ESApply`
+     (RVInvoke . singleton . Invocation) [n, l, r]
+
+
 jump :: CodeGenM Stmt
 jump = do
   jump <- jname "jumpNext"
@@ -127,6 +135,10 @@ entryCode _ (SNum i) = lit i
 entryCode closed (SVar v) = (:[]) <$> (handleVar closed v >>= enter)
 entryCode closed (SApp (SVar r) (SVar l)) = join $ app <$> handleVar closed r <*> handleVar closed l
 entryCode closed (FullApp op l r) = join $ prim op <$> handleVar closed l <*> handleVar closed r
+entryCode closed (SIf (SVar n) (SVar l) (SVar r)) = fmap (:[]). join $
+                                                    sif <$> handleVar closed n
+                                                        <*> handleVar closed l
+                                                        <*> handleVar closed r
 entryCode _ _ = throwError . Impossible $ "Found unflattened expression in entryCode generation!"
 
 extractClosure :: TopLevel -> [S.Name]
