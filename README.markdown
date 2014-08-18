@@ -13,7 +13,7 @@ The road map for this project looks something like
  - ✓ Conversion to STG
  - ✓ Compilation of STG to JS
  - ✓ Full Compiler Tests
- - Add "pattern matching"
+ - ✓ Add if expressions
  - Implement Update Frames
 
 ## Language
