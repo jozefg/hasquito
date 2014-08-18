@@ -55,6 +55,18 @@ var evalFirst = function(){
     enter(closure);
 }
 
+var sif = function(n, l, r){
+    pushCont(function(){
+        var nRes = EVAL_STACK.pop();
+        if(nRes === 0){
+            enter(l);
+        } else {
+            enter(r);
+        }
+    });
+    enter(n);
+}
+
 var doPlus = function(){
     right = EVAL_STACK.pop();
     left  = EVAL_STACK.pop();
