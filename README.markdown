@@ -30,8 +30,14 @@ Haskell.
 Notice that there is no sugar for top level functions. It simplifies
 parsing greatly. Lambdas are implicitly curried though.
 
-There are currently 4 primitive operations: `+`, `-`, `*`, and `/`. Other
-than that the language is just function application and lambdas.
+There are currently 4 primitive operations: `+`, `-`, `*`, and
+`/`. The language also supports a primitive if statement. This takes a
+number and if it is 0 runs one expression, otherwise the other.
+
+    main : Num = if (- 1 1) 0 1
+
+Will print 0 when run. Other than that the language is just function
+application and lambdas.
 
 A Hasquito program when run will evaluate `main : Num` and print the result.
 
