@@ -12,9 +12,9 @@ The road map for this project looks something like
  - ✓ Lambda Lifting
  - ✓ Conversion to STG
  - ✓ Compilation of STG to JS
- - Implement Update Frames
+ - ✓ Full Compiler Tests
  - Add "pattern matching"
- - Tests
+ - Implement Update Frames
 
 ## Language
 
