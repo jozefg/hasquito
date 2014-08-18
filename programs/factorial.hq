@@ -1,0 +1,2 @@
+factorial : Num -> Num = fun x -> if x 1 (* x (factorial (- x 1)));
+main : Num = factorial 5;
