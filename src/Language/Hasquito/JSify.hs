@@ -127,8 +127,7 @@ preamble bound closured body = fmap (FnLit Nothing []) $ do
         var l r = VarStmt . singleton $ VarDecl l (Just r)
 
 handleVar :: [S.Name] -> S.Name -> CodeGenM Expr
-handleVar closed v | v `elem` closed = ExprName <$> jvar v
-                   | otherwise       = resolve v (ExprName <$> jvar v)
+handleVar closed v = resolve v (ExprName <$> jvar v)
 
 entryCode :: [S.Name] -> SExp -> CodeGenM [Stmt]
 entryCode _ (SNum i) = lit i
