@@ -22,6 +22,7 @@ data Op = Plus | Minus | Mult | Div
 
 data Exp = Op Op
          | Num Int
+         | IfZ Exp Exp Exp
          | Var Name
          | App Exp Exp -- Curried application
          | Lam [Name] Name Exp
