@@ -17,6 +17,15 @@ flatten closed (SApp l r) = do
   tell $ [Thunk closed lVar l'
          ,Thunk closed rVar r']
   return (SApp (SVar lVar) (SVar rVar))
+flatten closed (SIf n l r) = do
+  [nVar, lVar, rVar] <- sequence [freshName, freshName, freshName]
+  n' <- flatten closed n
+  l' <- flatten closed l
+  r' <- flatten closed r
+  tell $ [ Thunk closed nVar n'
+         , Thunk closed lVar l'
+         ,Thunk closed rVar r']
+  return (SIf (SVar nVar) (SVar lVar) (SVar rVar))
 
 deExp :: [TopLevel] -> CompilerM [TopLevel]
 deExp = fmap concat . mapM flattenTop
