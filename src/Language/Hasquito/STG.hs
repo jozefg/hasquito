@@ -20,6 +20,7 @@ data TopLevel = Thunk [Name] Name SExp
 data SExp = SNum Int
           | SVar Name
           | SApp SExp SExp
+          | SIf SExp SExp SExp
           | FullApp Op Name Name
           deriving Show
 
@@ -27,6 +28,7 @@ convert :: Exp -> CompilerM SExp
 convert (App (App (Op p) (Var n)) (Var m)) = return $ FullApp p n m
 convert Op{} = throwError . Impossible $ "Unsatured operator in STG.convert"
 convert (App l r) = SApp <$> convert l <*> convert r
+convert (IfZ n l r) = SIf <$> convert n <*> convert l <*> convert r
 convert (Num i) = return $ SNum i
 convert (Var n) = return $ SVar n
 convert l@Lam{} = throwError . Impossible $ "Unlifted lambda in STG.convert!" <> pretty l
