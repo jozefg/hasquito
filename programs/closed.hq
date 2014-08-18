@@ -1,0 +1,2 @@
+makeClosure : Num -> Num -> Num = fun x -> (fun y -> x);
+main : Num = (makeClosure 1) 2;
