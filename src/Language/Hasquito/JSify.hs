@@ -126,19 +126,19 @@ preamble bound closured body = fmap (FnLit Nothing []) $ do
         bindClosVar (i, v) = var <$> jvar v <*> index i
         var l r = VarStmt . singleton $ VarDecl l (Just r)
 
-handleVar :: [S.Name] -> S.Name -> CodeGenM Expr
-handleVar closed v = resolve v (ExprName <$> jvar v)
+handleVar :: S.Name -> CodeGenM Expr
+handleVar v = resolve v (ExprName <$> jvar v)
 
-entryCode :: [S.Name] -> SExp -> CodeGenM [Stmt]
-entryCode _ (SNum i) = lit i
-entryCode closed (SVar v) = (:[]) <$> (handleVar closed v >>= enter)
-entryCode closed (SApp (SVar r) (SVar l)) = join $ app <$> handleVar closed r <*> handleVar closed l
-entryCode closed (FullApp op l r) = join $ prim op <$> handleVar closed l <*> handleVar closed r
-entryCode closed (SIf (SVar n) (SVar l) (SVar r)) = fmap (:[]). join $
-                                                    sif <$> handleVar closed n
-                                                        <*> handleVar closed l
-                                                        <*> handleVar closed r
-entryCode _ _ = throwError . Impossible $ "Found unflattened expression in entryCode generation!"
+entryCode :: SExp -> CodeGenM [Stmt]
+entryCode (SNum i) = lit i
+entryCode (SVar v) = (:[]) <$> (handleVar v >>= enter)
+entryCode (SApp (SVar r) (SVar l)) = join $ app <$> handleVar r <*> handleVar l
+entryCode (FullApp op l r) = join $ prim op <$> handleVar l <*> handleVar r
+entryCode (SIf (SVar n) (SVar l) (SVar r)) = fmap (:[]). join $
+                                                    sif <$> handleVar n
+                                                        <*> handleVar l
+                                                        <*> handleVar r
+entryCode _ = throwError . Impossible $ "Found unflattened expression in entryCode generation!"
 
 extractClosure :: TopLevel -> [S.Name]
 extractClosure (Thunk closed _ _) = closed
@@ -157,9 +157,9 @@ jsify decls = mapM compile decls
         buildState = Closure closureMap . M.fromList . flip zip [0..]
         compile (Thunk closed name body) = flip runReaderT (buildState closed) $ do
           name' <- jvar name
-          body' <- entryCode closed body
+          body' <- entryCode body
           fmap (define name') . preamble [] closed $ body'
         compile (Fun name closed arg body) = flip runReaderT (buildState closed) $ do
           name' <- jvar name
-          body' <- entryCode (arg : closed) body
+          body' <- entryCode body
           fmap (define name') . preamble [arg] closed $ body'
