@@ -49,9 +49,17 @@ prim = Op <$> (    char '+' *> return Plus
                <|> char '*' *> return Mult
                <|> char '/' *> return Div)
 
+ifz :: Parser Exp
+ifz = do
+  string "if" *> skipSpace
+  n <- expr <* skipSpace
+  l <- expr <* skipSpace
+  r <- expr <* skipSpace
+  return (IfZ n l r)
+
 expr :: Parser Exp
 expr = foldl1' App <$> many1 nonrec
-  where nonrec = skipSpace *> (try lam <|> eparen <|> prim <|> var <|> num)
+  where nonrec = skipSpace *> (try lam <|> eparen <|> ifz <|> prim <|> var <|> num)
 
 def :: Parser Def
 def = do
