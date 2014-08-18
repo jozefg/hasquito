@@ -80,6 +80,10 @@ typeOf Op{} = return $ TNum `TArr` (TNum `TArr` TNum)
 typeOf (Var v) = lookupVar v
 typeOf (Lam [] var body) = typeLam var body
 typeOf Lam{} = throwError . Impossible $ "Nontrivial closure in typechecking!"
+typeOf (IfZ num l r) = do
+  [numTy, lTy, rTy] <- mapM typeOf [num, l , r]
+  tell [numTy :~: TNum, lTy :~: rTy]
+  return lTy
 typeOf (App l r) = do
   funTy <- typeOf l
   argTy <- typeOf r
