@@ -4,6 +4,7 @@ import           Control.Applicative
 import           Control.Monad.Except
 import           Control.Monad.Reader
 import qualified Data.Map as M
+import qualified Data.Set as S
 import qualified Data.Text as T
 import           Language.Hasquito.STG
 import qualified Language.Hasquito.Syntax as S
@@ -13,6 +14,7 @@ import           Language.JavaScript.NonEmptyList
 
 data Closure = Closure { topClos  :: M.Map S.Name [S.Name] -- ^ A map of names to closed variables
                        , currClos :: M.Map S.Name Int      -- ^ A map of closed over variables to their current position
+                       , updateClos :: S.Set S.Name 
                        }
 type CodeGenM = ReaderT Closure CompilerM
 
@@ -43,11 +45,13 @@ index i = do
     ExprRefinement (ExprName node) (Property closed)
     `ExprRefinement` Subscript (ExprLit . LitNumber . Number $ fromIntegral i)
 
-mkClosure :: Expr -> [Expr] -> CodeGenM Expr
-mkClosure f args = do
+mkClosure :: Bool -> Expr -> [Expr] -> CodeGenM Expr
+mkClosure updateFlag f args = do
   mk <- ExprName <$> jname "mkClosure"
-  return $ ExprInvocation mk (Invocation $ [f, list])
+  return $ ExprInvocation mk (Invocation $ [f, list, if updateFlag then true else false])
   where list = ExprLit . LitArray . ArrayLit $ args
+        true  = ExprLit . LitNumber . Number $ 1
+        false = ExprLit . LitNumber . Number $ 0
 
 findVar :: M.Map S.Name Int -> S.Name -> CodeGenM Expr
 findVar m name = case M.lookup name m of
@@ -57,12 +61,13 @@ findVar m name = case M.lookup name m of
 resolve :: S.Name -> CodeGenM Expr -> CodeGenM Expr
 resolve nm expr = do
   result <- asks (M.lookup nm . topClos)
+  updateFlag <- asks (S.member nm . updateClos)
   case result of
     Nothing -> expr
     Just cs -> do
       clos <- asks currClos
       closure <- mapM (findVar clos) cs
-      expr >>= flip mkClosure closure
+      expr >>= flip (mkClosure updateFlag) closure
 
 pushStack :: Expr -> Name -> CodeGenM Stmt
 pushStack exp nm = do
@@ -148,13 +153,18 @@ extractName :: TopLevel -> S.Name
 extractName (Thunk _ n _) = n
 extractName (Fun n _ _ _) = n
 
+shouldUpdate :: TopLevel -> Bool
+shouldUpdate Thunk{} = True
+shouldUpdate Fun{}   = False
+
 define :: Name -> FnLit -> VarDecl
 define name = VarDecl name . Just . ExprLit . LitFn
 
 jsify :: [TopLevel] -> CompilerM [VarDecl]
 jsify decls = mapM compile decls
   where closureMap = M.fromList $ zip (map extractName decls) (map extractClosure decls)
-        buildState = Closure closureMap . M.fromList . flip zip [0..]
+        updateSet  = S.fromList . map extractName . filter shouldUpdate $ decls
+        buildState = flip (Closure closureMap) updateSet . M.fromList . flip zip [0..]
         compile (Thunk closed name body) = flip runReaderT (buildState closed) $ do
           name' <- jvar name
           body' <- entryCode body
