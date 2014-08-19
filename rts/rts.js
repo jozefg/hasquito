@@ -32,19 +32,24 @@ var primReturn = function(num){
 var doUpdate = function (closure) {
     return function(){
         var result = EVAL_STACK[0]; // Notice that we don't pop this
-        closure.entry = function(){EVAL_STACK.push(result)};
+        closure.entry = function(){
+            EVAL_STACK.push(result);
+            jumpNext();
+        };
         jumpNext(); // Continue on with the computation
     };
 }
 
 var enter = function(closure){
     NODE = closure;
-    if(closure.shouldUpdate) { CONT_STACK.push(doUpdate(closure)); }
+    if(closure.shouldUpdate) {
+        CONT_STACK.push(doUpdate(closure));
+    }
     closure.entry();
 }
 
 var enterMain = function(){
-    var clos = mkClosure(main, []);
+    var clos = mkClosure(main, [], 1);
     CONT_STACK.push(terminal);
     enter(clos);
 }
