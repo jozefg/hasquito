@@ -1,2 +1,4 @@
-factorial : Num -> Num = fun x -> if x 1 (* x (factorial (- x 1)));
-main : Num = factorial 2;
+go : Num -> Num -> Num = fun accum x -> if x accum (go (* accum x) (- x 1));
+factorial : Num -> Num = go 1;
+
+main : Num = factorial 5;

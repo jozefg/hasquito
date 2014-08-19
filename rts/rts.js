@@ -26,7 +26,7 @@ var doUpdate = function (closure) {
     return function(){
         var result = EVAL_STACK[0]; // Notice that we don't pop this
         closure.entry = primReturn(result);
-        return jumpNext(); // Continue on with the computation
+        return jumpNext()(); // Continue on with the computation
     };
 }
 
