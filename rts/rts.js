@@ -56,8 +56,12 @@ var evalFirst = function(){
 }
 
 var sif = function(n, l, r){
+    ARG_STACK.push(l);
+    ARG_STACK.push(r);
     CONT_STACK.push(function(){
         var nRes = EVAL_STACK.pop();
+        var r = ARG_STACK.pop()
+        var l = ARG_STACK.pop()
         if(nRes === 0){
             enter(l);
         } else {
