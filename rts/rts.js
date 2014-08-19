@@ -18,8 +18,7 @@ var mkClosure = function(entry_code, closed, update){
 var primReturn = function(num){
     return function(){
         EVAL_STACK.push(num);
-        cont = CONT_STACK.pop();
-        cont();
+        return CONT_STACK.pop();
     }
 }
 
@@ -27,7 +26,7 @@ var doUpdate = function (closure) {
     return function(){
         var result = EVAL_STACK[0]; // Notice that we don't pop this
         closure.entry = primReturn(result);
-        jumpNext(); // Continue on with the computation
+        return jumpNext(); // Continue on with the computation
     };
 }
 
@@ -36,18 +35,18 @@ var enter = function(closure){
     if(closure.shouldUpdate) {
         CONT_STACK.push(doUpdate(closure));
     }
-    closure.entry();
+    return closure.entry;
 }
 
 var enterMain = function(){
     var clos = mkClosure(main, [], 1);
     CONT_STACK.push(terminal);
-    enter(clos);
+    mainLoop(clos);
 }
 
 var jumpNext = function(){
     var next = CONT_STACK.pop();
-    next();
+    return next;
 }
 
 var nextArg = function(){
@@ -68,39 +67,48 @@ var sif = function(n, l, r){
         var r = ARG_STACK.pop()
         var l = ARG_STACK.pop()
         if(nRes === 0){
-            enter(l);
+            return enter(l);
         } else {
-            enter(r);
+            return enter(r);
         }
     });
-    enter(n);
+    return enter(n);
 }
 
 var doPlus = function(){
     right = EVAL_STACK.pop();
     left  = EVAL_STACK.pop();
     EVAL_STACK.push(left + right);
-    jumpNext();
+    return jumpNext();
 }
 var doMinus = function(){
     right = EVAL_STACK.pop();
     left  = EVAL_STACK.pop();
     EVAL_STACK.push(left - right);
-    jumpNext();
+    return jumpNext();
 }
 var doMult = function(){
     right = EVAL_STACK.pop();
     left  = EVAL_STACK.pop();
     EVAL_STACK.push(left * right);
-    jumpNext();
+    return jumpNext();
 }
 var doDiv = function(){
     right = EVAL_STACK.pop();
     left  = EVAL_STACK.pop();
     EVAL_STACK.push(left / right);
-    jumpNext();
+    return jumpNext();
 }
 
 var terminal = function(){
     console.log(EVAL_STACK.pop());
+    return 0
 }
+
+var mainLoop = function(clos){
+    var cont = function(){ enter(clos) };
+    while(cont){
+        cont = cont();
+    }
+}
+    
