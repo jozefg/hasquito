@@ -52,7 +52,7 @@ var enterMain = function(){
 
 var jumpNext = function(){
     var next = CONT_STACK.pop();
-    yield next;
+    next();
 }
 
 var nextArg = function(){
