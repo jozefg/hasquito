@@ -56,7 +56,7 @@ var nextArg = function(){
 var evalFirst = function(){
     var closure = ARG_STACK.pop();
     NODE = closure;
-    enter(closure);
+    return enter(closure);
 }
 
 var sif = function(n, l, r){
@@ -102,11 +102,11 @@ var doDiv = function(){
 
 var terminal = function(){
     console.log(EVAL_STACK.pop());
-    return 0
+    return 0;
 }
 
 var mainLoop = function(clos){
-    var cont = function(){ enter(clos) };
+    var cont = function(){ return enter(clos) };
     while(cont){
         cont = cont();
     }
