@@ -2,10 +2,6 @@
    closure we're evaluating */
 var NODE = undefined
 
-/* INT_REG is the place where all fully evaluated integers
-   get stuck. */
-var INT_REG = undefined
-
 /* Another global variable with the current argument stack */
 var ARG_STACK  = []
 
@@ -56,7 +52,7 @@ var enterMain = function(){
 
 var jumpNext = function(){
     var next = CONT_STACK.pop();
-    next();
+    yield next;
 }
 
 var nextArg = function(){
