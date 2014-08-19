@@ -11,8 +11,6 @@ var EVAL_STACK = []
 /* Stack for continuations */
 var CONT_STACK = []
 
-
-
 var mkClosure = function(entry_code, closed, update){
     return {entry : entry_code, closed_vars : closed, shouldUpdate : update}
 }

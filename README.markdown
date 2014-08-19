@@ -14,7 +14,8 @@ The road map for this project looks something like
  - ✓ Compilation of STG to JS
  - ✓ Full Compiler Tests
  - ✓ Add if expressions
- - Implement Update Frames
+ - ✓ Implement Update Frames
+ - Implement Trampolining
 
 ## Language
 
