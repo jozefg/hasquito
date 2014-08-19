@@ -33,10 +33,9 @@ opCont S.Div   = jname "doDiv"
 
 enter :: Expr -> CodeGenM Stmt
 enter e = do
-  enterName <- jname "enter"
-  return . StmtExpr $
-    singleton (LValue enterName []) `ESApply`
-     (RVInvoke . singleton . Invocation) [e]
+  enter <- jname "enter"
+  let call = ExprInvocation (ExprName enter) (Invocation [e])
+  return . StmtDisruptive . DSReturn . ReturnStmt . Just $ call
 
 index :: Int -> CodeGenM Expr
 index i = do
@@ -91,17 +90,14 @@ eval = ExprName <$> jname "evalFirst"
 sif :: Expr -> Expr -> Expr -> CodeGenM Stmt
 sif n l r = do
   sif <- jname "sif"
-  return . StmtExpr $
-    singleton (LValue sif []) `ESApply`
-     (RVInvoke . singleton . Invocation) [n, l, r]
-
+  let call = ExprInvocation (ExprName sif) (Invocation [n, l, r])
+  return . StmtDisruptive . DSReturn . ReturnStmt . Just $ call
 
 jump :: CodeGenM Stmt
 jump = do
-  jump <- jname "jumpNext"
-  return . StmtExpr $
-    singleton (LValue jump []) `ESApply`
-     (RVInvoke . singleton . Invocation) []
+  jump <- jname "jumpNext"  
+  let call = ExprInvocation (ExprName jump) (Invocation [])
+  return . StmtDisruptive . DSReturn . ReturnStmt . Just $ call
 
 nextArg :: CodeGenM Expr
 nextArg = do
