@@ -49,7 +49,7 @@ var enterMain = function(){
     enter(clos);
 }
 
-var jumpNext = function(f){
+var jumpNext = function(){
     var next = CONT_STACK.pop();
     next();
 }
