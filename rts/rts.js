@@ -17,8 +17,8 @@ var CONT_STACK = []
 
 
 
-var mkClosure = function(entry_code, closed){
-    return {entry : entry_code, closed_vars : closed}
+var mkClosure = function(entry_code, closed, update){
+    return {entry : entry_code, closed_vars : closed, shouldUpdate : update}
 }
 
 var primReturn = function(num){
@@ -29,8 +29,17 @@ var primReturn = function(num){
     }
 }
 
+var doUpdate = function (closure) {
+    return function(){
+        var result = EVAL_STACK[0]; // Notice that we don't pop this
+        closure.entry = function(){EVAL_STACK.push(result)};
+        jumpNext(); // Continue on with the computation
+    };
+}
+
 var enter = function(closure){
     NODE = closure;
+    if(closure.shouldUpdate) { CONT_STACK.push(doUpdate(closure)); }
     closure.entry();
 }
 
