@@ -15,7 +15,7 @@ The road map for this project looks something like
  - ✓ Full Compiler Tests
  - ✓ Add if expressions
  - ✓ Implement Update Frames
- - Implement Trampolining
+ - ✓ Implement Trampolining
 
 ## Language
 
