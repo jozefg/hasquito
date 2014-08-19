@@ -28,10 +28,7 @@ var primReturn = function(num){
 var doUpdate = function (closure) {
     return function(){
         var result = EVAL_STACK[0]; // Notice that we don't pop this
-        closure.entry = function(){
-            EVAL_STACK.push(result);
-            jumpNext();
-        };
+        closure.entry = primReturn(result);
         jumpNext(); // Continue on with the computation
     };
 }
